@@ -1,0 +1,545 @@
+{
+  "data_version": "d038fe16493d",
+  "start_month": "2026-01",
+  "end_month": "2026-09",
+  "requested_months": [
+    "2026-01",
+    "2026-02",
+    "2026-03",
+    "2026-04",
+    "2026-05",
+    "2026-06",
+    "2026-07",
+    "2026-08",
+    "2026-09"
+  ],
+  "processed_months": [
+    "2026-01",
+    "2026-02",
+    "2026-03",
+    "2026-04",
+    "2026-05",
+    "2026-06",
+    "2026-07",
+    "2026-08",
+    "2026-09"
+  ],
+  "missing_months": [],
+  "complete": true,
+  "n_months": 9,
+  "n_raw_trips": 3362065,
+  "n_trips": 3361307,
+  "n_stations": 484,
+  "kept_columns": [
+    "trip_id",
+    "gender",
+    "birth_year",
+    "start_time",
+    "end_time",
+    "origin_id",
+    "destination_id",
+    "duration_min"
+  ],
+  "dropped_columns": [
+    "user_id"
+  ],
+  "created_utc": "2026-10-17T12:02:11+00:00",
+  "files": [
+    {
+      "name": "stations.parquet",
+      "source": "nomenclatura_2026_09.csv",
+      "encoding": "utf-8-sig",
+      "rows": 484,
+      "raw_sha256": "206e45fe633922b634d858142fa21e6fd9f4c421b6435c02980ef290cc2df90d",
+      "sha256": "674459c2d1009460a8159d82c247860b1698dc1a16be355656013787378884d8",
+      "stats": {
+        "original_columns": [
+          "id",
+          "name",
+          "latitude",
+          "longitude",
+          "dpcapacity"
+        ],
+        "raw_rows": 484,
+        "stations_inactive": 14,
+        "stations_invalid_coords": [],
+        "dropped": {
+          "sin_id": 0,
+          "id_duplicado": 0
+        },
+        "warnings": [
+          "4 estaciones sin capacidad válida (se conservan)."
+        ],
+        "final_rows": 484,
+        "final_columns": [
+          "station_id",
+          "name",
+          "lat",
+          "lon",
+          "capacity",
+          "active",
+          "coords_valid"
+        ]
+      }
+    },
+    {
+      "name": "trips_2026_01.parquet",
+      "month": "2026-01",
+      "source": "datos_abiertos_2026_01.csv",
+      "encoding": "latin-1",
+      "rows": 357180,
+      "raw_sha256": "c40d7a43eb1c0b1523d6267bcdfac1daad04179ef1f0a7cf93f09b2df82285c2",
+      "sha256": "143ae03b1c4d2a88f5c88281c165c5eb5590bc8c3324a99e3ef1dbe6af0eab05",
+      "stats": {
+        "original_columns": [
+          "Viaje_Id",
+          "Usuario_Id",
+          "Genero",
+          "Año_de_nacimiento",
+          "Inicio_del_viaje",
+          "Fin_del_viaje",
+          "Origen_Id",
+          "Destino_Id"
+        ],
+        "raw_rows": 357180,
+        "date_format": "%Y-%m-%d %H:%M:%S",
+        "date_format_scores": {
+          "%Y-%m-%d %H:%M:%S": 21011,
+          "%Y-%m-%d %H:%M": 0,
+          "%d/%m/%Y %H:%M:%S": 0,
+          "%d/%m/%Y %H:%M": 0,
+          "%m/%d/%Y %H:%M:%S": 0,
+          "%m/%d/%Y %H:%M": 0
+        },
+        "date_sample_size": 21011,
+        "dropped": {
+          "fecha_invalida": 0,
+          "sin_estacion": 0,
+          "fin_antes_de_inicio": 0,
+          "fuera_del_mes": 0,
+          "duplicado": 0
+        },
+        "final_rows": 357180,
+        "final_columns": [
+          "trip_id",
+          "gender",
+          "birth_year",
+          "start_time",
+          "end_time",
+          "origin_id",
+          "destination_id",
+          "duration_min"
+        ],
+        "trips_with_unknown_station": 0
+      }
+    },
+    {
+      "name": "trips_2026_02.parquet",
+      "month": "2026-02",
+      "source": "datos_abiertos_2026_02.csv",
+      "encoding": "utf-8-sig",
+      "rows": 333756,
+      "raw_sha256": "2d78fa9686477bdedbf333423e6aadc63b265aaef038eb0b09701746a155ae1f",
+      "sha256": "95270b1ce8a965bef83a920f0b1cb7818da547aee3b4ffe1dbf533f19a6d2420",
+      "stats": {
+        "original_columns": [
+          "Viaje_Id",
+          "Usuario_Id",
+          "Genero",
+          "Año_de_nacimiento",
+          "Inicio_del_viaje",
+          "Fin_del_viaje",
+          "Origen_Id",
+          "Destino_Id"
+        ],
+        "raw_rows": 333756,
+        "date_format": "%Y-%m-%d %H:%M:%S",
+        "date_format_scores": {
+          "%Y-%m-%d %H:%M:%S": 20860,
+          "%Y-%m-%d %H:%M": 0,
+          "%d/%m/%Y %H:%M:%S": 0,
+          "%d/%m/%Y %H:%M": 0,
+          "%m/%d/%Y %H:%M:%S": 0,
+          "%m/%d/%Y %H:%M": 0
+        },
+        "date_sample_size": 20860,
+        "dropped": {
+          "fecha_invalida": 0,
+          "sin_estacion": 0,
+          "fin_antes_de_inicio": 0,
+          "fuera_del_mes": 0,
+          "duplicado": 0
+        },
+        "final_rows": 333756,
+        "final_columns": [
+          "trip_id",
+          "gender",
+          "birth_year",
+          "start_time",
+          "end_time",
+          "origin_id",
+          "destination_id",
+          "duration_min"
+        ],
+        "trips_with_unknown_station": 0
+      }
+    },
+    {
+      "name": "trips_2026_03.parquet",
+      "month": "2026-03",
+      "source": "datos_abiertos_2026_03.csv",
+      "encoding": "utf-8-sig",
+      "rows": 376243,
+      "raw_sha256": "97c273aa7465c99d509dfc58436122a979ad51af00bd527cef6144210375d16e",
+      "sha256": "aa1bb5a489aa9bce5e6124ff8669f38abd4e9b31514d918c5d85060aa388d781",
+      "stats": {
+        "original_columns": [
+          "Viaje_Id",
+          "Usuario_Id",
+          "Genero",
+          "Año_de_nacimiento",
+          "Inicio_del_viaje",
+          "Fin_del_viaje",
+          "Origen_Id",
+          "Destino_Id"
+        ],
+        "raw_rows": 376243,
+        "date_format": "%Y-%m-%d %H:%M:%S",
+        "date_format_scores": {
+          "%Y-%m-%d %H:%M:%S": 20903,
+          "%Y-%m-%d %H:%M": 0,
+          "%d/%m/%Y %H:%M:%S": 0,
+          "%d/%m/%Y %H:%M": 0,
+          "%m/%d/%Y %H:%M:%S": 0,
+          "%m/%d/%Y %H:%M": 0
+        },
+        "date_sample_size": 20903,
+        "dropped": {
+          "fecha_invalida": 0,
+          "sin_estacion": 0,
+          "fin_antes_de_inicio": 0,
+          "fuera_del_mes": 0,
+          "duplicado": 0
+        },
+        "final_rows": 376243,
+        "final_columns": [
+          "trip_id",
+          "gender",
+          "birth_year",
+          "start_time",
+          "end_time",
+          "origin_id",
+          "destination_id",
+          "duration_min"
+        ],
+        "trips_with_unknown_station": 0
+      }
+    },
+    {
+      "name": "trips_2026_04.parquet",
+      "month": "2026-04",
+      "source": "datos_abiertos_2026_04.csv",
+      "encoding": "utf-8-sig",
+      "rows": 351851,
+      "raw_sha256": "9165342d0169f2c0ba4fb2c944003147c8a95d77f9058361b451cadf141b2483",
+      "sha256": "78241ecae4bb93e327eadf8f143533df3b339c8f002498393caa92d1e23fa1b7",
+      "stats": {
+        "original_columns": [
+          "Viaje_Id",
+          "Usuario_Id",
+          "Genero",
+          "Año_de_nacimiento",
+          "Inicio_del_viaje",
+          "Fin_del_viaje",
+          "Origen_Id",
+          "Destino_Id"
+        ],
+        "raw_rows": 351851,
+        "date_format": "%Y-%m-%d %H:%M:%S",
+        "date_format_scores": {
+          "%Y-%m-%d %H:%M:%S": 20698,
+          "%Y-%m-%d %H:%M": 0,
+          "%d/%m/%Y %H:%M:%S": 0,
+          "%d/%m/%Y %H:%M": 0,
+          "%m/%d/%Y %H:%M:%S": 0,
+          "%m/%d/%Y %H:%M": 0
+        },
+        "date_sample_size": 20698,
+        "dropped": {
+          "fecha_invalida": 0,
+          "sin_estacion": 0,
+          "fin_antes_de_inicio": 0,
+          "fuera_del_mes": 0,
+          "duplicado": 0
+        },
+        "final_rows": 351851,
+        "final_columns": [
+          "trip_id",
+          "gender",
+          "birth_year",
+          "start_time",
+          "end_time",
+          "origin_id",
+          "destination_id",
+          "duration_min"
+        ],
+        "trips_with_unknown_station": 0
+      }
+    },
+    {
+      "name": "trips_2026_05.parquet",
+      "month": "2026-05",
+      "source": "datos_abiertos_2026_05.csv",
+      "encoding": "utf-8-sig",
+      "rows": 315895,
+      "raw_sha256": "d0ac16ae3a75b8ac40565176e2e607c99c756a385860caa7e2ffb351082c9d45",
+      "sha256": "7a05b00a617621c8e52c4b87974dd76ab2e638cefc515b6879ad09d09d8e17e1",
+      "stats": {
+        "original_columns": [
+          "Viaje_Id",
+          "Usuario_Id",
+          "Genero",
+          "Año_de_nacimiento",
+          "Inicio_del_viaje",
+          "Fin_del_viaje",
+          "Origen_Id",
+          "Destino_Id"
+        ],
+        "raw_rows": 315895,
+        "date_format": "%Y-%m-%d %H:%M:%S",
+        "date_format_scores": {
+          "%Y-%m-%d %H:%M:%S": 21060,
+          "%Y-%m-%d %H:%M": 0,
+          "%d/%m/%Y %H:%M:%S": 0,
+          "%d/%m/%Y %H:%M": 0,
+          "%m/%d/%Y %H:%M:%S": 0,
+          "%m/%d/%Y %H:%M": 0
+        },
+        "date_sample_size": 21060,
+        "dropped": {
+          "fecha_invalida": 0,
+          "sin_estacion": 0,
+          "fin_antes_de_inicio": 0,
+          "fuera_del_mes": 0,
+          "duplicado": 0
+        },
+        "final_rows": 315895,
+        "final_columns": [
+          "trip_id",
+          "gender",
+          "birth_year",
+          "start_time",
+          "end_time",
+          "origin_id",
+          "destination_id",
+          "duration_min"
+        ],
+        "trips_with_unknown_station": 0
+      }
+    },
+    {
+      "name": "trips_2026_06.parquet",
+      "month": "2026-06",
+      "source": "datos_abiertos_2026_06.csv",
+      "encoding": "utf-8-sig",
+      "rows": 355303,
+      "raw_sha256": "a4d195786a3599b155829288a0432cd9e76c6780dc693c0e9579d11e11c49a27",
+      "sha256": "c1df892f027cd4dfa0148d593571ebe85258896bd2007ded892d1fc8e8b1b5c7",
+      "stats": {
+        "original_columns": [
+          "Viaje_Id",
+          "Usuario_Id",
+          "Genero",
+          "Año_de_nacimiento",
+          "Inicio_del_viaje",
+          "Fin_del_viaje",
+          "Origen_Id",
+          "Destino_Id"
+        ],
+        "raw_rows": 355303,
+        "date_format": "%Y-%m-%d %H:%M:%S",
+        "date_format_scores": {
+          "%Y-%m-%d %H:%M:%S": 20901,
+          "%Y-%m-%d %H:%M": 0,
+          "%d/%m/%Y %H:%M:%S": 0,
+          "%d/%m/%Y %H:%M": 0,
+          "%m/%d/%Y %H:%M:%S": 0,
+          "%m/%d/%Y %H:%M": 0
+        },
+        "date_sample_size": 20901,
+        "dropped": {
+          "fecha_invalida": 0,
+          "sin_estacion": 0,
+          "fin_antes_de_inicio": 0,
+          "fuera_del_mes": 0,
+          "duplicado": 0
+        },
+        "final_rows": 355303,
+        "final_columns": [
+          "trip_id",
+          "gender",
+          "birth_year",
+          "start_time",
+          "end_time",
+          "origin_id",
+          "destination_id",
+          "duration_min"
+        ],
+        "trips_with_unknown_station": 1980
+      }
+    },
+    {
+      "name": "trips_2026_07.parquet",
+      "month": "2026-07",
+      "source": "datos_abiertos_2026_07.csv",
+      "encoding": "utf-8-sig",
+      "rows": 388257,
+      "raw_sha256": "3f9db9fed985977b175001a984302eae7c61326a75ed93afae9c8fc17bbdb922",
+      "sha256": "ecea34960331366be6b36ec566912869e9d569ff735a4ab5d5e027281937d096",
+      "stats": {
+        "original_columns": [
+          "Viaje_Id",
+          "Usuario_Id",
+          "Genero",
+          "Año_de_nacimiento",
+          "Inicio_del_viaje",
+          "Fin_del_viaje",
+          "Origen_Id",
+          "Destino_Id"
+        ],
+        "raw_rows": 388257,
+        "date_format": "%Y-%m-%d %H:%M:%S",
+        "date_format_scores": {
+          "%Y-%m-%d %H:%M:%S": 20435,
+          "%Y-%m-%d %H:%M": 0,
+          "%d/%m/%Y %H:%M:%S": 0,
+          "%d/%m/%Y %H:%M": 0,
+          "%m/%d/%Y %H:%M:%S": 0,
+          "%m/%d/%Y %H:%M": 0
+        },
+        "date_sample_size": 20435,
+        "dropped": {
+          "fecha_invalida": 0,
+          "sin_estacion": 0,
+          "fin_antes_de_inicio": 0,
+          "fuera_del_mes": 0,
+          "duplicado": 0
+        },
+        "final_rows": 388257,
+        "final_columns": [
+          "trip_id",
+          "gender",
+          "birth_year",
+          "start_time",
+          "end_time",
+          "origin_id",
+          "destination_id",
+          "duration_min"
+        ],
+        "trips_with_unknown_station": 1974
+      }
+    },
+    {
+      "name": "trips_2026_08.parquet",
+      "month": "2026-08",
+      "source": "datos_abiertos_2026_08.csv",
+      "encoding": "utf-8-sig",
+      "rows": 393524,
+      "raw_sha256": "e34f39b9ad204ae0b66f3538894a5f86ed03f46d98701169d3e4d95952d5f671",
+      "sha256": "809511d38f42025c75fd572f436009d800c1b22d4ed6557dfb9987dfcd7d9064",
+      "stats": {
+        "original_columns": [
+          "Viaje_Id",
+          "Usuario_Id",
+          "Genero",
+          "Año_de_nacimiento",
+          "Inicio_del_viaje",
+          "Fin_del_viaje",
+          "Origen_Id",
+          "Destino_Id"
+        ],
+        "raw_rows": 393524,
+        "date_format": "%Y-%m-%d %H:%M:%S",
+        "date_format_scores": {
+          "%Y-%m-%d %H:%M:%S": 20712,
+          "%Y-%m-%d %H:%M": 0,
+          "%d/%m/%Y %H:%M:%S": 0,
+          "%d/%m/%Y %H:%M": 0,
+          "%m/%d/%Y %H:%M:%S": 0,
+          "%m/%d/%Y %H:%M": 0
+        },
+        "date_sample_size": 20712,
+        "dropped": {
+          "fecha_invalida": 0,
+          "sin_estacion": 0,
+          "fin_antes_de_inicio": 0,
+          "fuera_del_mes": 0,
+          "duplicado": 0
+        },
+        "final_rows": 393524,
+        "final_columns": [
+          "trip_id",
+          "gender",
+          "birth_year",
+          "start_time",
+          "end_time",
+          "origin_id",
+          "destination_id",
+          "duration_min"
+        ],
+        "trips_with_unknown_station": 0
+      }
+    },
+    {
+      "name": "trips_2026_09.parquet",
+      "month": "2026-09",
+      "source": "datos_abiertos_2026_09.csv",
+      "encoding": "utf-8-sig",
+      "rows": 489298,
+      "raw_sha256": "00b5cf64cc31a502d01044d905f6e033f9bc1db962e771119742fd25c6cb58b3",
+      "sha256": "d562b8664bafa5e0c82176a3c340b69f9e4b896a97e3be992737e012722a2ba0",
+      "stats": {
+        "original_columns": [
+          "Viaje_Id",
+          "Usuario_Id",
+          "Genero",
+          "Año_de_nacimiento",
+          "Inicio_del_viaje",
+          "Fin_del_viaje",
+          "Origen_Id",
+          "Destino_Id"
+        ],
+        "raw_rows": 490056,
+        "date_format": "%Y-%m-%d %H:%M:%S",
+        "date_format_scores": {
+          "%Y-%m-%d %H:%M:%S": 20419,
+          "%Y-%m-%d %H:%M": 0,
+          "%d/%m/%Y %H:%M:%S": 0,
+          "%d/%m/%Y %H:%M": 0,
+          "%m/%d/%Y %H:%M:%S": 0,
+          "%m/%d/%Y %H:%M": 0
+        },
+        "date_sample_size": 20419,
+        "dropped": {
+          "fecha_invalida": 0,
+          "sin_estacion": 0,
+          "fin_antes_de_inicio": 0,
+          "fuera_del_mes": 0,
+          "duplicado": 758
+        },
+        "final_rows": 489298,
+        "final_columns": [
+          "trip_id",
+          "gender",
+          "birth_year",
+          "start_time",
+          "end_time",
+          "origin_id",
+          "destination_id",
+          "duration_min"
+        ],
+        "trips_with_unknown_station": 0
+      }
+    }
+  ]
+}

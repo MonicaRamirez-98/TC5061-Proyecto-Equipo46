@@ -1,0 +1,13 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "mibici"
+version = "0.0.1"
+description = "Proyecto de Machine Learning sobre el sistema de bicicleta pública MiBici"
+readme = "README.md"
+requires-python = ">=3.10"
+
+[tool.flit.module]
+name = "mibici"
