@@ -26,6 +26,7 @@ from mibici.config import (
     PROJ_ROOT,
     RANDOM_SEED,
 )
+from mibici.features import build_station_profiles
 
 
 N_CLUSTERS = 3
@@ -64,100 +65,6 @@ def load_inputs() -> tuple[pd.DataFrame, pd.DataFrame, dict]:
     )
     stations = pd.read_parquet(stations_path)
     return trips, stations, manifest
-
-
-def build_station_profiles(
-    trips: pd.DataFrame,
-    stations: pd.DataFrame,
-) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Construye perfiles por estación, día de semana y hora."""
-    required_trip_columns = {
-        "start_time",
-        "end_time",
-        "origin_id",
-        "destination_id",
-    }
-    missing = required_trip_columns - set(trips.columns)
-    if missing:
-        raise ValueError(f"Faltan columnas de viajes: {sorted(missing)}")
-
-    required_station_columns = {"station_id", "lat", "lon"}
-    missing = required_station_columns - set(stations.columns)
-    if missing:
-        raise ValueError(f"Faltan columnas de estaciones: {sorted(missing)}")
-
-    metadata = stations.copy()
-    metadata["station_id"] = pd.to_numeric(
-        metadata["station_id"], errors="coerce"
-    )
-    metadata["lat"] = pd.to_numeric(metadata["lat"], errors="coerce")
-    metadata["lon"] = pd.to_numeric(metadata["lon"], errors="coerce")
-    metadata = metadata.dropna(subset=["station_id", "lat", "lon"])
-
-    if "active" in metadata.columns:
-        metadata = metadata[metadata["active"].fillna(False).astype(bool)]
-    if "coords_valid" in metadata.columns:
-        metadata = metadata[metadata["coords_valid"].fillna(False).astype(bool)]
-
-    metadata["station_id"] = metadata["station_id"].astype("int64")
-    metadata = metadata.drop_duplicates("station_id").sort_values("station_id")
-    station_ids = metadata["station_id"].tolist()
-
-    if not station_ids:
-        raise ValueError("No hay estaciones activas con coordenadas válidas.")
-
-    data = trips[
-        ["start_time", "end_time", "origin_id", "destination_id"]
-    ].copy()
-    data["start_time"] = pd.to_datetime(data["start_time"], errors="coerce")
-    data["end_time"] = pd.to_datetime(data["end_time"], errors="coerce")
-    data["origin_id"] = pd.to_numeric(data["origin_id"], errors="coerce")
-    data["destination_id"] = pd.to_numeric(
-        data["destination_id"], errors="coerce"
-    )
-    data = data.dropna(
-        subset=["start_time", "end_time", "origin_id", "destination_id"]
-    )
-
-    profile_columns = pd.MultiIndex.from_product(
-        [range(7), range(24)],
-        names=["day", "hour"],
-    )
-    profiles = []
-
-    flows = [
-        ("departures", "origin_id", "start_time"),
-        ("arrivals", "destination_id", "end_time"),
-    ]
-
-    for prefix, station_column, time_column in flows:
-        events = data[[station_column, time_column]].copy()
-        events["day"] = events[time_column].dt.dayofweek
-        events["hour"] = events[time_column].dt.hour
-
-        counts = events.groupby(
-            [station_column, "day", "hour"],
-            observed=True,
-        ).size()
-
-        matrix = counts.unstack(["day", "hour"])
-        matrix = matrix.reindex(
-            index=station_ids,
-            columns=profile_columns,
-            fill_value=0,
-        ).fillna(0)
-
-        matrix.columns = [
-            f"{prefix}_day{day}_hour{hour:02d}"
-            for day, hour in matrix.columns
-        ]
-        profiles.append(matrix.astype("float32"))
-
-    feature_matrix = pd.concat(profiles, axis=1)
-    feature_matrix.index.name = "station_id"
-    metadata = metadata.set_index("station_id").loc[feature_matrix.index]
-
-    return feature_matrix, metadata.reset_index()
 
 
 def git_commit() -> str:
