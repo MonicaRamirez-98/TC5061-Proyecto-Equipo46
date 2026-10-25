@@ -9,7 +9,9 @@ import tempfile
 from pathlib import Path
 
 import matplotlib
+
 matplotlib.use("Agg")
+
 import matplotlib.pyplot as plt
 import mlflow
 import numpy as np
@@ -22,6 +24,7 @@ from mibici.config import (
     MANIFEST_PATH,
     MLFLOW_EXPERIMENT_NAME,
     PROCESSED_DATA_DIR,
+    PROJECT_TRAIN_DEFAULTS,
     PROJ_ROOT,
     RANDOM_SEED,
 )
@@ -33,10 +36,14 @@ def load_inputs() -> tuple[pd.DataFrame, dict]:
     manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
 
     if not manifest.get("complete", False):
-        raise ValueError("La ingesta está incompleta. Ejecuta primero python -m mibici.dataset.")
+        raise ValueError(
+            "La ingesta está incompleta. "
+            "Ejecuta primero python -m mibici.dataset."
+        )
 
     trip_files = [
-        item for item in manifest.get("files", [])
+        item
+        for item in manifest.get("files", [])
         if item.get("name", "").startswith("trips_")
     ]
     if not trip_files:
@@ -57,7 +64,9 @@ def load_inputs() -> tuple[pd.DataFrame, dict]:
 def chronological_split(panel: pd.DataFrame):
     """Divide por hora objetivo en entrenamiento, validación y prueba."""
     data = panel.dropna(subset=["target_departures_next_hour"]).copy()
-    times = pd.DatetimeIndex(data["target_time"].drop_duplicates().sort_values())
+    times = pd.DatetimeIndex(
+        data["target_time"].drop_duplicates().sort_values()
+    )
 
     if len(times) < 10:
         raise ValueError("No hay suficientes horas para dividir los datos.")
@@ -108,13 +117,44 @@ def evaluate(model, frame: pd.DataFrame, split_name: str):
 
     metrics = {
         f"{split_name}_mae": float(mean_absolute_error(y_true, y_pred)),
-        f"{split_name}_rmse": float(np.sqrt(mean_squared_error(y_true, y_pred))),
+        f"{split_name}_rmse": float(
+            np.sqrt(mean_squared_error(y_true, y_pred))
+        ),
         f"{split_name}_r2": float(r2_score(y_true, y_pred)),
     }
     return metrics, y_true, y_pred
 
 
-def main() -> None:
+def main(
+    model_name: str | None = None,
+    hyperparameters: dict | None = None,
+) -> None:
+    """Entrena P1 usando el modelo e hiperparámetros indicados."""
+    defaults = PROJECT_TRAIN_DEFAULTS["p1"]
+    model_name = model_name or defaults["model"]
+    resolved_hyperparameters = {
+        **defaults["hyperparameters"],
+        **(hyperparameters or {}),
+    }
+
+    if model_name != defaults["model"]:
+        raise ValueError(f"Modelo no admitido para P1: {model_name}")
+
+    strategy = resolved_hyperparameters["strategy"]
+    if strategy not in {"mean", "median", "quantile"}:
+        raise ValueError(
+            "La estrategia P1 debe ser mean, median o quantile."
+        )
+
+    if strategy == "quantile":
+        quantile = float(resolved_hyperparameters.get("quantile", 0.5))
+        if not 0 <= quantile <= 1:
+            raise ValueError("quantile debe estar entre 0 y 1.")
+    elif "quantile" in resolved_hyperparameters:
+        raise ValueError(
+            "quantile solo aplica cuando strategy=quantile."
+        )
+
     tracking_uri = os.getenv(
         "MLFLOW_TRACKING_URI",
         (PROJ_ROOT / "mlruns").as_uri(),
@@ -127,7 +167,12 @@ def main() -> None:
     train, validation, test, bounds = chronological_split(panel)
 
     y_train = train["target_departures_next_hour"].astype(float).to_numpy()
-    model = DummyRegressor(strategy="mean")
+
+    model_kwargs = {"strategy": strategy}
+    if strategy == "quantile":
+        model_kwargs["quantile"] = quantile
+
+    model = DummyRegressor(**model_kwargs)
     model.fit(np.zeros((len(y_train), 1)), y_train)
 
     metrics = {}
@@ -143,7 +188,8 @@ def main() -> None:
 
     params = {
         "question": "P1",
-        "baseline": "DummyRegressor_mean",
+        "baseline": f"DummyRegressor_{strategy}",
+        "strategy": strategy,
         "granularity": "station_hour",
         "horizon": "next_hour",
         "target": "outbound_trip_count_next_hour",
@@ -157,14 +203,18 @@ def main() -> None:
         "test_rows": len(test),
         **bounds,
     }
+    if strategy == "quantile":
+        params["quantile"] = quantile
 
-    with mlflow.start_run(run_name="P1_dummy_mean_hourly_demand"):
-        mlflow.set_tags({
-            "team": "46",
-            "question": "P1",
-            "git_commit": git_commit(),
-            "data_version": str(manifest["data_version"]),
-        })
+    with mlflow.start_run(run_name=f"P1_dummy_{strategy}_hourly_demand"):
+        mlflow.set_tags(
+            {
+                "team": "46",
+                "question": "P1",
+                "git_commit": git_commit(),
+                "data_version": str(manifest["data_version"]),
+            }
+        )
         mlflow.log_params(params)
         mlflow.log_metrics(metrics)
 
@@ -186,7 +236,9 @@ def main() -> None:
             )
             fig.tight_layout()
 
-            artifact_path = Path(temp_dir) / "p1_test_actual_vs_predicted.png"
+            artifact_path = (
+                Path(temp_dir) / "p1_test_actual_vs_predicted.png"
+            )
             fig.savefig(artifact_path, dpi=140)
             plt.close(fig)
             mlflow.log_artifact(str(artifact_path), artifact_path="evidence")

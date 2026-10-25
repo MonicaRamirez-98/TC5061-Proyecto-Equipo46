@@ -9,7 +9,9 @@ import tempfile
 from pathlib import Path
 
 import matplotlib
+
 matplotlib.use("Agg")
+
 import matplotlib.pyplot as plt
 import mlflow
 import numpy as np
@@ -29,13 +31,11 @@ from mibici.config import (
     MANIFEST_PATH,
     MLFLOW_EXPERIMENT_NAME,
     PROCESSED_DATA_DIR,
+    PROJECT_TRAIN_DEFAULTS,
     PROJ_ROOT,
     RANDOM_SEED,
 )
 from mibici.features import make_hourly_panel
-
-
-RISK_FRACTION = 0.10
 
 
 def load_inputs() -> tuple[pd.DataFrame, pd.DataFrame, dict]:
@@ -44,12 +44,13 @@ def load_inputs() -> tuple[pd.DataFrame, pd.DataFrame, dict]:
 
     if not manifest.get("complete", False):
         raise ValueError(
-            "La ingesta está incompleta. Ejecuta primero "
-            "python -m mibici.dataset."
+            "La ingesta está incompleta. "
+            "Ejecuta primero python -m mibici.dataset."
         )
 
     trip_files = [
-        item for item in manifest.get("files", [])
+        item
+        for item in manifest.get("files", [])
         if item.get("name", "").startswith("trips_")
     ]
     if not trip_files:
@@ -70,14 +71,15 @@ def load_inputs() -> tuple[pd.DataFrame, pd.DataFrame, dict]:
         ignore_index=True,
     )
     stations = pd.read_parquet(stations_path)
-
     return trips, stations, manifest
 
 
 def chronological_split(panel: pd.DataFrame):
     """Divide las observaciones por hora objetivo en orden cronológico."""
     data = panel.dropna(subset=["target_risk_next_hour"]).copy()
-    times = pd.DatetimeIndex(data["target_time"].drop_duplicates().sort_values())
+    times = pd.DatetimeIndex(
+        data["target_time"].drop_duplicates().sort_values()
+    )
 
     if len(times) < 10:
         raise ValueError("No hay suficientes horas para la partición temporal.")
@@ -137,11 +139,44 @@ def evaluate(model, frame: pd.DataFrame, split_name: str) -> dict:
         f"{split_name}_recall": float(
             recall_score(y_true, y_pred, zero_division=0)
         ),
-        f"{split_name}_f1": float(f1_score(y_true, y_pred, zero_division=0)),
+        f"{split_name}_f1": float(
+            f1_score(y_true, y_pred, zero_division=0)
+        ),
     }
 
 
-def main() -> None:
+def main(
+    model_name: str | None = None,
+    hyperparameters: dict | None = None,
+) -> None:
+    """Entrena P2 usando el modelo e hiperparámetros indicados."""
+    defaults = PROJECT_TRAIN_DEFAULTS["p2"]
+    model_name = model_name or defaults["model"]
+    resolved_hyperparameters = {
+        **defaults["hyperparameters"],
+        **(hyperparameters or {}),
+    }
+
+    if model_name != defaults["model"]:
+        raise ValueError(f"Modelo no admitido para P2: {model_name}")
+
+    strategy = resolved_hyperparameters["strategy"]
+    supported_strategies = {
+        "most_frequent",
+        "prior",
+        "stratified",
+        "uniform",
+    }
+    if strategy not in supported_strategies:
+        raise ValueError(
+            f"Estrategia P2 no admitida: {strategy}. "
+            f"Opciones: {sorted(supported_strategies)}"
+        )
+
+    risk_fraction = float(resolved_hyperparameters["risk_fraction"])
+    if not 0 < risk_fraction <= 1:
+        raise ValueError("risk_fraction debe ser mayor que 0 y menor o igual a 1.")
+
     tracking_uri = os.getenv(
         "MLFLOW_TRACKING_URI",
         (PROJ_ROOT / "mlruns").as_uri(),
@@ -153,13 +188,13 @@ def main() -> None:
     panel = make_hourly_panel(
         trips,
         stations=stations,
-        risk_fraction=RISK_FRACTION,
+        risk_fraction=risk_fraction,
     )
     train, validation, test, bounds = chronological_split(panel)
 
     y_train = train["target_risk_next_hour"].astype("int8").to_numpy()
     model = DummyClassifier(
-        strategy="most_frequent",
+        strategy=strategy,
         random_state=RANDOM_SEED,
     )
     model.fit(np.zeros((len(y_train), 1)), y_train)
@@ -177,11 +212,12 @@ def main() -> None:
 
     params = {
         "question": "P2",
-        "baseline": "DummyClassifier_most_frequent",
+        "baseline": f"DummyClassifier_{strategy}",
+        "strategy": strategy,
         "granularity": "station_hour",
         "horizon": "next_hour",
         "target": "absolute_net_flow_at_least_10pct_capacity",
-        "risk_fraction_of_capacity": RISK_FRACTION,
+        "risk_fraction_of_capacity": risk_fraction,
         "split_strategy": "chronological_70_15_15_by_target_time",
         "start_month": str(manifest["start_month"]),
         "end_month": str(manifest["end_month"]),
@@ -194,13 +230,17 @@ def main() -> None:
         **bounds,
     }
 
-    with mlflow.start_run(run_name="P2_dummy_majority_capacity_pressure"):
-        mlflow.set_tags({
-            "team": "46",
-            "question": "P2",
-            "git_commit": git_commit(),
-            "data_version": str(manifest["data_version"]),
-        })
+    with mlflow.start_run(
+        run_name=f"P2_dummy_{strategy}_capacity_pressure"
+    ):
+        mlflow.set_tags(
+            {
+                "team": "46",
+                "question": "P2",
+                "git_commit": git_commit(),
+                "data_version": str(manifest["data_version"]),
+            }
+        )
         mlflow.log_params(params)
         mlflow.log_metrics(metrics)
 
@@ -223,7 +263,9 @@ def main() -> None:
             fig.colorbar(image, ax=ax, fraction=0.046, pad=0.04)
             fig.tight_layout()
 
-            artifact_path = Path(temp_dir) / "p2_test_confusion_matrix.png"
+            artifact_path = (
+                Path(temp_dir) / "p2_test_confusion_matrix.png"
+            )
             fig.savefig(artifact_path, dpi=140)
             plt.close(fig)
             mlflow.log_artifact(str(artifact_path), artifact_path="evidence")
