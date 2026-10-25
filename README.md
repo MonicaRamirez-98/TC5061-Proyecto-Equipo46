@@ -280,3 +280,161 @@ Convención de ramas y de commits, protección de la rama principal y proceso de
 - Ivan Plata Garnica
 - Axel Fernando Rabago Diaz
 - Monica Maria Ramirez Mejia
+
+## Experimentación avanzada y Model Registry — Semana 6
+
+### Objetivo
+
+Esta etapa amplía el proyecto MiBici del Equipo 46 mediante experimentación avanzada, búsqueda de hiperparámetros, seguimiento de ejecuciones con MLflow y gestión de los modelos seleccionados mediante Model Registry.
+
+Los experimentos utilizan la versión de datos `d038fe16493d` y conservan las particiones temporales y criterios de evaluación de los baselines.
+
+### Requisitos
+
+- Python y dependencias especificadas en `requirements.txt`.
+- MLflow Tracking Server con backend SQLite.
+- Datos de MiBici generados mediante el proceso de ingesta.
+- Archivos `MLproject` y `python_env.yaml`.
+- Entorno de ejecución configurado con las dependencias del proyecto.
+
+### 1. Configurar MLflow
+
+Desde la raíz del repositorio, iniciar el servidor:
+
+```powershell
+mlflow server --backend-store-uri sqlite:///mlflow.db --host 127.0.0.1 --port 5000
+```
+
+En una segunda terminal configurar:
+
+```powershell
+$env:MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
+```
+
+El servidor estará disponible en `http://127.0.0.1:5000`.
+
+### 2. Ejecutar la ingesta
+
+```powershell
+mlflow run . -e ingest --env-manager local --experiment-name mibici-equipo46
+```
+
+Verificar los archivos contra el manifiesto:
+
+```powershell
+python -m mibici.dataset --verify
+```
+
+### 3. Ejecutar los baselines
+
+P1 — Predicción de demanda:
+
+```powershell
+mlflow run . -e train -P question=P1 -P model=dummy_regressor -P hyperparameters="{}" --env-manager local --experiment-name mibici-equipo46
+```
+
+P2 — Presión operacional:
+
+```powershell
+mlflow run . -e train -P question=P2 -P model=dummy_classifier -P hyperparameters="{}" --env-manager local --experiment-name mibici-equipo46
+```
+
+P3 — Agrupación de estaciones:
+
+```powershell
+mlflow run . -e train -P question=P3 -P model=kmeans -P hyperparameters="{}" --env-manager local --experiment-name mibici-equipo46
+```
+
+### 4. Ejecutar la experimentación avanzada
+
+P1 — Tres candidatos de HistGradientBoostingRegressor:
+
+```powershell
+mlflow run . -e search_p1 --env-manager local --experiment-name mibici-equipo46
+```
+
+P2 — Tres candidatos de HistGradientBoostingClassifier:
+
+```powershell
+mlflow run . -e search_p2 --env-manager local --experiment-name mibici-equipo46
+```
+
+P3 — Búsqueda de KMeans con K=4, 5 y 6:
+
+```powershell
+mlflow run . -e search_p3 --env-manager local --experiment-name mibici-equipo46
+```
+
+Para reproducir el modelo P3 seleccionado, K=3:
+
+```powershell
+mlflow run . -e train -P question=P3 -P model=kmeans -P hyperparameters=@configs/p3_k3.json --env-manager local --experiment-name mibici-equipo46
+```
+
+Las búsquedas registran parámetros, métricas, artefactos y modelos asociados a sus ejecuciones.
+
+### 5. Resultados experimentales
+
+| Pregunta | Baseline | Modelo seleccionado | Principal resultado |
+|---|---|---|---|
+| P1 | DummyRegressor | P1-HGB-02 | MAE validación: 1.3104 → 0.7352 |
+| P2 | DummyClassifier | P2-HGB-03 | F1 validación: 0 → 0.4855 |
+| P3 | KMeans K=3 | KMeans K=3 | Silhouette: 0.4506; mejor entre K=3, 4, 5 y 6 |
+
+P1 utiliza MAE de validación como criterio de selección.
+
+P2 utiliza F1 de validación, con Recall y Balanced Accuracy como criterios secundarios.
+
+P3 compara Silhouette, Calinski-Harabasz, Inertia y la distribución de las estaciones.
+
+### 6. Registrar modelos seleccionados
+
+Ejecutar:
+
+```powershell
+python -m mibici.modeling.registry
+```
+
+El script identifica automáticamente los modelos candidatos registrados en MLflow, comprueba la versión de los datos y registra las versiones seleccionadas.
+
+Los modelos registrados son:
+
+| Pregunta | Modelo registrado | Alias |
+|---|---|---|
+| P1 | `mibici-equipo46-p1-demanda` | `champion` |
+| P2 | `mibici-equipo46-p2-riesgo` | `champion` |
+| P3 | `mibici-equipo46-p3-grupos` | `champion` |
+
+Los modelos se pueden recuperar mediante:
+
+```text
+models:/mibici-equipo46-p1-demanda@champion
+models:/mibici-equipo46-p2-riesgo@champion
+models:/mibici-equipo46-p3-grupos@champion
+```
+
+El alias `champion` identifica los modelos seleccionados para la entrega académica. No implica que exista un servicio de producción desplegado.
+
+### 7. Artefactos
+
+Los experimentos registran, según la pregunta:
+
+- Modelos con firma y ejemplo de entrada.
+- Configuraciones de entrenamiento.
+- Manifiesto y versión de datos.
+- Gráficas de evaluación.
+- Matrices de confusión.
+- Resultados comparativos.
+- Metadatos para trazabilidad.
+
+### 8. Reproducibilidad y limitaciones
+
+Los archivos CSV y Parquet, modelos serializados, bases SQLite, entornos virtuales y artefactos locales de MLflow no se incorporan al repositorio Git.
+
+Las ejecuciones deben realizarse utilizando el entorno configurado y los mismos datos para obtener resultados comparables.
+
+En P2, el objetivo corresponde a un indicador indirecto de presión operacional calculado a partir del flujo neto y la capacidad de las estaciones; no representa directamente la disponibilidad real de bicicletas.
+
+En P3, las predicciones requieren generar previamente los perfiles de estaciones con el mismo orden de características utilizado durante el entrenamiento.
+
+La experimentación y el Model Registry forman parte de un entorno académico local, por lo que no constituyen un despliegue productivo de los modelos.

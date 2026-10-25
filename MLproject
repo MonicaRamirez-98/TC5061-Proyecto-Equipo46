@@ -5,6 +5,12 @@ python_env: python_env.yaml
 entry_points:
   ingest:
     command: "python -m mibici.dataset"
+  search_p3:
+    command: "python -m mibici.modeling.experiment_p3"
+  search_p1:
+    command: "python -m mibici.modeling.experiment_p1"
+  search_p2:
+    command: "python -m mibici.modeling.experiment_p2"
 
   train:
     parameters:
