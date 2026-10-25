@@ -1,7 +1,6 @@
 # TC5061-Proyecto-Equipo46 · MiBici
 
-Proyecto de Machine Learning sobre el sistema de bicicleta pública MiBici del Área
-Metropolitana de Guadalajara.
+Proyecto de Machine Learning sobre el sistema de bicicleta pública MiBici del Área Metropolitana de Guadalajara.
 
 ## Preguntas del proyecto
 
@@ -13,8 +12,7 @@ Metropolitana de Guadalajara.
 
 ## Instalación
 
-Esta guía permite instalar y ejecutar el proyecto en cualquier computadora con
-Windows, macOS o Linux. No se requiere experiencia previa en programación.
+Esta guía permite instalar y ejecutar el proyecto en cualquier computadora con Windows, macOS o Linux. No se requiere experiencia previa en programación.
 
 ### Requisitos
 
@@ -26,13 +24,12 @@ Windows, macOS o Linux. No se requiere experiencia previa en programación.
 
 ### Pasos
 
-Abrir una terminal (en VS Code: menú **Terminal → New Terminal**) y ejecutar los
-siguientes comandos, uno por uno:
+Abrir una terminal (en VS Code: menú **Terminal → New Terminal**) y ejecutar los siguientes comandos, uno por uno:
 
 **1. Descargar el proyecto**
 
 ```bash
-git clone https://github.com/MonicaRamirez-98/TC5061-Proyecto-Equipo46.git
+git clone https://github.com/axelR07/TC5061-Proyecto-Equipo46.git
 cd TC5061-Proyecto-Equipo46
 ```
 
@@ -45,8 +42,7 @@ python -m venv .venv
 - Windows: `.venv\Scripts\activate`
 - macOS / Linux: `source .venv/bin/activate`
 
-Al activarse, la terminal muestra `(.venv)` al inicio de la línea.
-En macOS, si `python` no se reconoce, usar `python3`.
+Al activarse, la terminal muestra `(.venv)` al inicio de la línea. En macOS, si `python` no se reconoce, usar `python3`.
 
 **3. Instalar las dependencias**
 
@@ -55,15 +51,11 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-Todas las dependencias tienen versión fija en `requirements.txt`, por lo que el
-entorno es idéntico en cualquier computadora.
+Todas las dependencias tienen versión fija en `requirements.txt`, por lo que el entorno es idéntico en cualquier computadora.
 
 ## Obtención de los datos (ingesta)
 
-Los datos provienen del portal de datos abiertos de MiBici
-(https://mibici.net/es/datos-abiertos/): viajes mensuales
-(`datos_abiertos_AAAA_MM.csv`) y nomenclatura de estaciones (`nomenclatura_2026_09.csv`).
-Los datos no se incluyen en el repositorio; se descargan con un solo comando.
+Los datos provienen del portal de datos abiertos de MiBici (https://mibici.net/es/datos-abiertos/): viajes mensuales (`datos_abiertos_AAAA_MM.csv`) y nomenclatura de estaciones (`nomenclatura_2026_09.csv`). Los datos no se incluyen en el repositorio; se descargan con un solo comando.
 
 ### Ejecución desde un entorno limpio
 
@@ -73,36 +65,24 @@ Con el entorno virtual activo (ver [Instalación](#instalación)):
 python -m mibici.dataset
 ```
 
-Este comando procesa el periodo **enero–septiembre 2026** (definido en
-`mibici/config.py`). Otros comandos disponibles:
+Este comando procesa el periodo **enero–septiembre 2026** (definido en `mibici/config.py`). Otros comandos disponibles:
 
 | Comando | Uso |
 |---|---|
 | `python -m mibici.dataset --start 2026-01 --end 2026-03` | Procesar otro periodo |
 | `python -m mibici.dataset --verify` | Comprobar que los archivos en disco coinciden con los hashes del manifiesto |
 
-Al terminar correctamente, la terminal muestra una línea `SUCCESS` con la versión de
-los datos, el número de viajes, de meses y de estaciones.
+Al terminar correctamente, la terminal muestra una línea `SUCCESS` con la versión de los datos, el número de viajes, de meses y de estaciones.
 
 ### Qué hace el comando
 
-1. **Descarga** los archivos en `data/raw/`. Si un archivo ya existe, no se descarga de
-   nuevo. Si el servidor devuelve un error o una página HTML en lugar de un CSV, el mes
-   se registra como faltante.
+1. **Descarga** los archivos en `data/raw/`. Si un archivo ya existe, no se descarga de nuevo. Si el servidor devuelve un error o una página HTML en lugar de un CSV, el mes se registra como faltante.
 2. **Lee** cada archivo detectando su codificación (UTF-8 o Latin-1) y su separador.
-3. **Unifica los nombres de columnas**, que cambian entre años
-   (por ejemplo, `Viaje_Id` o `Trip_Id` → `trip_id`).
-4. **Convierte las fechas con un formato explícito.** Se prueban los formatos
-   `AAAA-MM-DD hh:mm:ss`, `DD/MM/AAAA hh:mm` y `MM/DD/AAAA hh:mm`, y se elige el que
-   ubica más viajes **dentro del mes del archivo**. Así se resuelven fechas ambiguas:
-   en el archivo de mayo, `04/05/2026` solo puede ser el 4 de mayo. Si dos formatos
-   empatan, el mes se marca como no procesado. El formato elegido y el conteo de cada
-   formato quedan registrados en el manifiesto.
-5. **Limpia los registros** (ver criterios abajo) y cuenta cuántos se descartan por
-   cada motivo.
+3. **Unifica los nombres de columnas**, que cambian entre años (por ejemplo, `Viaje_Id` o `Trip_Id` → `trip_id`).
+4. **Convierte las fechas con un formato explícito.** Se prueban los formatos `AAAA-MM-DD hh:mm:ss`, `DD/MM/AAAA hh:mm` y `MM/DD/AAAA hh:mm`, y se elige el que ubica más viajes **dentro del mes del archivo**. Así se resuelven fechas ambiguas: en el archivo de mayo, `04/05/2026` solo puede ser el 4 de mayo. Si dos formatos empatan, el mes se marca como no procesado. El formato elegido y el conteo de cada formato quedan registrados en el manifiesto.
+5. **Limpia los registros** (ver criterios abajo) y cuenta cuántos se descartan por cada motivo.
 6. **Guarda** los datos limpios en formato Parquet en `data/processed/`.
-7. **Versiona** los datos en `data/manifest/data_manifest.json` y genera un resumen
-   legible en `reports/ingesta_resumen.md`.
+7. **Versiona** los datos en `data/manifest/data_manifest.json` y genera un resumen legible en `reports/ingesta_resumen.md`.
 
 ### Columnas
 
@@ -141,18 +121,9 @@ los datos, el número de viajes, de meses y de estaciones.
 | El viaje empieza fuera del mes del archivo | viaje del 31/12/2025 en el archivo de enero 2026 |
 | `trip_id` repetido | la misma fila aparece dos veces |
 
-Los viajes cuya estación no aparece en la nomenclatura actual **se conservan**
-(pueden ser estaciones dadas de baja) y se cuentan en el manifiesto
-(`trips_with_unknown_station`).
+Los viajes cuya estación no aparece en la nomenclatura actual **se conservan** (pueden ser estaciones dadas de baja) y se cuentan en el manifiesto (`trips_with_unknown_station`).
 
-**Estaciones.** El proceso se detiene si faltan las columnas de identificador,
-latitud o longitud. Se descartan estaciones sin identificador o con identificador
-duplicado. Las estaciones con coordenadas fuera del Área Metropolitana de Guadalajara
-(latitud 20.50–20.80, longitud −103.50 a −103.20, definida en `mibici/config.py`)
-**no se eliminan**: se marcan con `coords_valid = False` y se listan en el manifiesto,
-porque sus viajes siguen siendo válidos para P1 y P2; solo deben excluirse en análisis
-que usan la ubicación (P3). Si la capacidad falta o no es válida, se registra una
-advertencia y la estación se conserva.
+**Estaciones.** El proceso se detiene si faltan las columnas de identificador, latitud o longitud. Se descartan estaciones sin identificador o con identificador duplicado. Las estaciones con coordenadas fuera del Área Metropolitana de Guadalajara (latitud 20.50–20.80, longitud −103.50 a −103.20, definida en `mibici/config.py`) **no se eliminan**: se marcan con `coords_valid = False` y se listan en el manifiesto, porque sus viajes siguen siendo válidos para P1 y P2; solo deben excluirse en análisis que usan la ubicación (P3). Si la capacidad falta o no es válida, se registra una advertencia y la estación se conserva.
 
 ### Resultados de la ejecución
 
@@ -177,17 +148,12 @@ advertencia y la estación se conserva.
 | 2026-09 | 490,056 | 758 | 489,298 | `%Y-%m-%d %H:%M:%S` |
 | **Total** | 3,362,065 | 758 | 3,361,307 | |
 
-- Archivos originales: separador coma y valores entre
-  comillas. La codificación de caracteres cambia entre archivos (Latin-1 en enero, UTF-8 en septiembre); el proceso la detecta automáticamente y queda registrada en el manifiesto (`encoding`).
-- Estaciones: 484 en la nomenclatura, 14 retiradas 
-  (`ex-`), 4 con capacidad 0 y ninguna con coordenadas fuera del área metropolitana.
-- De enero a agosto no se descartó ningún viaje. En 
-  septiembre se descartaron 758 viajes (0.15 % del mes) por tener identificador de viaje repetido; se conserva la primera aparición de cada viaje para no contarlo dos veces.
-- Observaciones en el archivo de enero 2026 que **no** 
-  se eliminan en la ingesta, porque son decisiones de análisis y se tratan en `features.py`: 10,535 viajes duran menos de 1 minuto (8,899 de ellos regresan a la misma estación); 37 viajes duran más de 3 horas; 2,616 viajes no tienen género y 38 tienen año de nacimiento anterior a 1930.
+- Archivos originales: separador coma y valores entre comillas. La codificación de caracteres cambia entre archivos (Latin-1 en enero, UTF-8 en septiembre); el proceso la detecta automáticamente y queda registrada en el manifiesto (`encoding`).
+- Estaciones: 484 en la nomenclatura, 14 retiradas (`ex-`), 4 con capacidad 0 y ninguna con coordenadas fuera del área metropolitana.
+- De enero a agosto no se descartó ningún viaje. En septiembre se descartaron 758 viajes (0.15 % del mes) por tener identificador de viaje repetido; se conserva la primera aparición de cada viaje para no contarlo dos veces.
+- Observaciones en el archivo de enero 2026 que **no** se eliminan en la ingesta, porque son decisiones de análisis y se tratan en `features.py`: 10,535 viajes duran menos de 1 minuto (8,899 de ellos regresan a la misma estación); 37 viajes duran más de 3 horas; 2,616 viajes no tienen género y 38 tienen año de nacimiento anterior a 1930.
 
-El resumen de la ingesta completa (enero–septiembre 2026) se genera en
-`reports/ingesta_resumen.md`.
+El resumen de la ingesta completa (enero–septiembre 2026) se genera en `reports/ingesta_resumen.md`.
 
 ### Archivos no disponibles
 
@@ -196,21 +162,13 @@ Si un mes no se puede descargar o leer, el proceso continúa con los demás, per
 - el mes aparece en `missing_months` del manifiesto y `complete` queda en `false`;
 - la terminal muestra `INGESTA INCOMPLETA` con la lista de meses faltantes;
 - el comando termina con código de error (1), así la ingesta no se da por válida;
-- el Parquet de ese mes de una ejecución anterior se elimina, y en `data/processed/`
-  solo quedan los archivos de la ejecución actual, así nunca se mezclan datos de
-  ejecuciones distintas.
+- el Parquet de ese mes de una ejecución anterior se elimina, y en `data/processed/` solo quedan los archivos de la ejecución actual, así nunca se mezclan datos de ejecuciones distintas.
 
 ### Versionado de los datos
 
-El manifiesto `data/manifest/data_manifest.json` registra los meses solicitados,
-procesados y faltantes; el número de registros por archivo; los registros descartados
-por motivo; y el hash SHA-256 de cada archivo original y de cada Parquet generado.
+El manifiesto `data/manifest/data_manifest.json` registra los meses solicitados, procesados y faltantes; el número de registros por archivo; los registros descartados por motivo; y el hash SHA-256 de cada archivo original y de cada Parquet generado.
 
-El identificador `data_version` se calcula **solo** a partir del periodo y de los
-hashes de los CSV originales. Por eso dos ejecuciones con los mismos archivos de
-entrada producen la misma versión, y cualquier cambio en los datos de MiBici produce
-una versión distinta. `--verify` comprueba que los archivos en disco no han cambiado.
-Este identificador se registra en cada experimento de MLflow.
+El identificador `data_version` se calcula **solo** a partir del periodo y de los hashes de los CSV originales. Por eso dos ejecuciones con los mismos archivos de entrada producen la misma versión, y cualquier cambio en los datos de MiBici produce una versión distinta. `--verify` comprueba que los archivos en disco no han cambiado. Este identificador se registra en cada experimento de MLflow.
 
 ### Estructura de los datos generados
 
@@ -226,8 +184,7 @@ reports/
 
 ### Configuración
 
-Las rutas, el rango de fechas, la semilla aleatoria (`RANDOM_SEED = 42`) y las URLs de
-MiBici se encuentran únicamente en `mibici/config.py`.
+Las rutas, el rango de fechas, la semilla aleatoria (`RANDOM_SEED = 42`) y las URLs de MiBici se encuentran únicamente en `mibici/config.py`.
 
 ### Solución de problemas
 
@@ -239,9 +196,7 @@ MiBici se encuentran únicamente en `mibici/config.py`.
 
 ### Archivos excluidos de Git
 
-El `.gitignore` excluye los datos de MiBici (`data/raw/`, `data/processed/`, `*.csv`,
-`*.parquet`), las carpetas de MLflow (`mlruns/`, `mlartifacts/`), el archivo `.env` y
-los modelos serializados (`models/*`, `*.pkl`, `*.joblib`).
+El `.gitignore` excluye los datos de MiBici (`data/raw/`, `data/processed/`, `*.csv`, `*.parquet`), las carpetas de MLflow (`mlruns/`, `mlartifacts/`), el archivo `.env` y los modelos serializados (`models/*`, `*.pkl`, `*.joblib`).
 
 ## Estructura del repositorio
 
@@ -254,20 +209,71 @@ los modelos serializados (`models/*`, `*.pkl`, `*.joblib`).
 ├── mibici/            # código del proyecto
 │   ├── config.py      # rutas, fechas, semilla y URLs
 │   ├── dataset.py     # ingesta y versionado de datos
-│   └── features.py    # feature engineering
+│   ├── features.py    # feature engineering
+│   └── modeling/
+│       ├── project_train.py
+│       ├── train.py
+│       ├── train_p2.py
+│       └── train_p3.py
+├── MLproject
+├── python_env.yaml
 ├── pyproject.toml
 └── requirements.txt
 ```
 
 ## Experimento base (MLflow)
 
-Comando para ejecutar el experimento base, descripción de los runs registrados en MLflow
-(uno por pregunta) y cómo visualizarlos en la interfaz de MLflow.
+El seguimiento local de MLflow utiliza una base SQLite para guardar experimentos y runs.
+
+### Iniciar el servidor
+
+Desde la raíz del repositorio, en una terminal de PowerShell con `.venv` activo, ejecuta:
+
+```powershell
+.\.venv\Scripts\mlflow.exe server --backend-store-uri sqlite:///mlflow.db --host 127.0.0.1 --port 5000 --workers 1
+```
+
+Mantén esta terminal abierta mientras uses MLflow. El servidor estará disponible en <http://127.0.0.1:5000>. Para detenerlo, presiona `Ctrl+C`.
+
+### Conectar los comandos del proyecto
+
+En una segunda terminal de PowerShell, con `.venv` activo, configura la URI y el experimento:
+
+```powershell
+$env:MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
+$env:MLFLOW_EXPERIMENT_NAME = "mibici-equipo46"
+```
+
+Estas variables hacen que los procesos de esa terminal registren sus runs en el servidor y experimento correctos.
+
+### Reproducir ingesta y entrenamientos con MLflow Projects
+
+Desde la raíz del repositorio y con el servidor activo, ejecuta:
+
+```powershell
+mlflow run . --entry-point ingest --env-manager local
+mlflow run . --entry-point train --env-manager local -P question=P1
+mlflow run . --entry-point train --env-manager local -P question=P2
+mlflow run . --entry-point train --env-manager local -P question=P3
+```
+
+Los modelos y sus hiperparámetros predeterminados se obtienen de `mibici/config.py`:
+
+| Pregunta | Modelo | Hiperparámetros predeterminados |
+|---|---|---|
+| P1 | `dummy_regressor` | `strategy=mean` |
+| P2 | `dummy_classifier` | `strategy=most_frequent`, `risk_fraction=0.10` |
+| P3 | `kmeans` | `n_clusters=3`, `n_init=10`, `max_iter=300` |
+
+El comando `ingest` descarga y procesa los datos. Después, cada comando `train` utiliza los archivos procesados y el manifiesto de esa ingesta. Los comandos se ejecutan mediante el MLflow Project, no desde un notebook.
+
+### Archivos locales
+
+La base `mlflow.db` y los artefactos se guardan localmente y están excluidos de Git mediante `.gitignore`.
 
 ## Flujo de trabajo con Git
 
-Convención de ramas y de commits, protección de la rama principal y proceso de
-Pull Request y revisión.
+Convención de ramas y de commits, protección de la rama principal y proceso de Pull Request y revisión.
 
 ## Integrantes
 

@@ -9,7 +9,9 @@ import tempfile
 from pathlib import Path
 
 import matplotlib
+
 matplotlib.use("Agg")
+
 import matplotlib.pyplot as plt
 import mlflow
 import numpy as np
@@ -23,13 +25,11 @@ from mibici.config import (
     MANIFEST_PATH,
     MLFLOW_EXPERIMENT_NAME,
     PROCESSED_DATA_DIR,
+    PROJECT_TRAIN_DEFAULTS,
     PROJ_ROOT,
     RANDOM_SEED,
 )
 from mibici.features import build_station_profiles
-
-
-N_CLUSTERS = 3
 
 
 def load_inputs() -> tuple[pd.DataFrame, pd.DataFrame, dict]:
@@ -38,12 +38,13 @@ def load_inputs() -> tuple[pd.DataFrame, pd.DataFrame, dict]:
 
     if not manifest.get("complete", False):
         raise ValueError(
-            "La ingesta está incompleta. Ejecuta primero "
-            "python -m mibici.dataset."
+            "La ingesta está incompleta. "
+            "Ejecuta primero python -m mibici.dataset."
         )
 
     trip_files = [
-        item for item in manifest.get("files", [])
+        item
+        for item in manifest.get("files", [])
         if item.get("name", "").startswith("trips_")
     ]
     if not trip_files:
@@ -82,7 +83,32 @@ def git_commit() -> str:
         return "unknown"
 
 
-def main() -> None:
+def main(
+    model_name: str | None = None,
+    hyperparameters: dict | None = None,
+) -> None:
+    """Agrupa estaciones usando el modelo e hiperparámetros indicados."""
+    defaults = PROJECT_TRAIN_DEFAULTS["p3"]
+    model_name = model_name or defaults["model"]
+    resolved_hyperparameters = {
+        **defaults["hyperparameters"],
+        **(hyperparameters or {}),
+    }
+
+    if model_name != defaults["model"]:
+        raise ValueError(f"Modelo no admitido para P3: {model_name}")
+
+    n_clusters = int(resolved_hyperparameters["n_clusters"])
+    n_init = int(resolved_hyperparameters["n_init"])
+    max_iter = int(resolved_hyperparameters["max_iter"])
+
+    if n_clusters < 2:
+        raise ValueError("n_clusters debe ser al menos 2.")
+    if n_init < 1:
+        raise ValueError("n_init debe ser al menos 1.")
+    if max_iter < 1:
+        raise ValueError("max_iter debe ser al menos 1.")
+
     tracking_uri = os.getenv(
         "MLFLOW_TRACKING_URI",
         (PROJ_ROOT / "mlruns").as_uri(),
@@ -93,16 +119,19 @@ def main() -> None:
     trips, stations, manifest = load_inputs()
     profiles, metadata = build_station_profiles(trips, stations)
 
-    if len(profiles) <= N_CLUSTERS:
-        raise ValueError("Se requieren más estaciones que grupos.")
+    if len(profiles) <= n_clusters:
+        raise ValueError(
+            "Se requieren más estaciones que grupos solicitados."
+        )
 
     scaler = StandardScaler()
     values = scaler.fit_transform(profiles.to_numpy(dtype="float32"))
 
     model = KMeans(
-        n_clusters=N_CLUSTERS,
+        n_clusters=n_clusters,
         random_state=RANDOM_SEED,
-        n_init=10,
+        n_init=n_init,
+        max_iter=max_iter,
     )
     labels = model.fit_predict(values)
 
@@ -123,20 +152,22 @@ def main() -> None:
         "station_count": float(len(profiles)),
     }
 
-    for cluster_id in range(N_CLUSTERS):
+    for cluster_id in range(n_clusters):
         metrics[f"cluster_{cluster_id}_stations"] = float(
             np.sum(labels == cluster_id)
         )
 
     params = {
         "question": "P3",
-        "baseline": "KMeans_station_usage_profiles",
-        "profile": "arrivals_and_departures_by_weekday_and_hour",
-        "n_clusters": N_CLUSTERS,
+        "baseline": f"KMeans_{n_clusters}_clusters",
+        "n_clusters": n_clusters,
+        "n_init": n_init,
+        "max_iter": max_iter,
         "scaler": "StandardScaler",
         "random_seed": RANDOM_SEED,
         "station_count": len(profiles),
         "profile_dimension": profiles.shape[1],
+        "profile": "arrivals_and_departures_by_weekday_and_hour",
         "start_month": str(manifest["start_month"]),
         "end_month": str(manifest["end_month"]),
         "data_version": str(manifest["data_version"]),
@@ -145,13 +176,17 @@ def main() -> None:
     map_data = metadata.copy()
     map_data["cluster"] = labels
 
-    with mlflow.start_run(run_name="P3_kmeans_station_usage_profiles"):
-        mlflow.set_tags({
-            "team": "46",
-            "question": "P3",
-            "git_commit": git_commit(),
-            "data_version": str(manifest["data_version"]),
-        })
+    with mlflow.start_run(
+        run_name=f"P3_kmeans_{n_clusters}_station_usage_profiles"
+    ):
+        mlflow.set_tags(
+            {
+                "team": "46",
+                "question": "P3",
+                "git_commit": git_commit(),
+                "data_version": str(manifest["data_version"]),
+            }
+        )
         mlflow.log_params(params)
         mlflow.log_metrics(metrics)
 
@@ -176,7 +211,9 @@ def main() -> None:
             ax.legend()
             fig.tight_layout()
 
-            artifact_path = Path(temp_dir) / "p3_station_clusters_map.png"
+            artifact_path = (
+                Path(temp_dir) / "p3_station_clusters_map.png"
+            )
             fig.savefig(artifact_path, dpi=160)
             plt.close(fig)
             mlflow.log_artifact(str(artifact_path), artifact_path="evidence")

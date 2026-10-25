@@ -44,4 +44,26 @@ STATIONS_FILE = "nomenclatura_2026_09.csv"
 # --- MLflow -----------------------------------------------------------------
 MLFLOW_EXPERIMENT_NAME = "mibici-equipo46"  # experimento del equipo en MLflow
 
+PROJECT_TRAIN_DEFAULTS = {
+    "p1": {
+        "model": "dummy_regressor",
+        "hyperparameters": {"strategy": "mean"},
+    },
+    "p2": {
+        "model": "dummy_classifier",
+        "hyperparameters": {
+            "strategy": "most_frequent",
+            "risk_fraction": 0.10,
+        },
+    },
+    "p3": {
+        "model": "kmeans",
+        "hyperparameters": {
+            "n_clusters": 3,
+            "n_init": 10,
+            "max_iter": 300,
+        },
+    },
+}
+
 logger.info(f"PROJ_ROOT: {PROJ_ROOT}")
