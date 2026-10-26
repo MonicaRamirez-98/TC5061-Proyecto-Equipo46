@@ -1,5 +1,5 @@
 """Punto de entrada de entrenamiento para MLflow Projects."""
-
+from pathlib import Path
 import json
 from typing import Any
 
@@ -40,10 +40,19 @@ def main(
         )
 
     try:
-        supplied_hyperparameters: dict[str, Any] = json.loads(hyperparameters_json)
-    except json.JSONDecodeError as exc:
+        if hyperparameters_json.startswith("@"):
+            config_path = Path(hyperparameters_json[1:])
+            hyperparameters_json = config_path.read_text(
+                encoding="utf-8-sig"
+            )
+
+        supplied_hyperparameters: dict[str, Any] = json.loads(
+            hyperparameters_json
+        )
+
+    except (json.JSONDecodeError, OSError) as exc:
         raise typer.BadParameter(
-            f"Los hiperparámetros no son JSON válido: {exc}"
+            f"No se pudieron cargar los hiperparámetros: {exc}"
         ) from exc
 
     if not isinstance(supplied_hyperparameters, dict):
