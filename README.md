@@ -415,6 +415,10 @@ models:/mibici-equipo46-p3-grupos@champion
 
 El alias `champion` identifica los modelos seleccionados para la entrega académica. No implica que exista un servicio de producción desplegado.
 
+**Por qué se usan aliases.** El Model Registry puede marcar la versión "oficial" de un modelo de dos formas: con etapas (`Staging`, `Production`) o con aliases. Este proyecto usa aliases (`champion`), porque las etapas están deprecadas desde MLflow 2.9 y los aliases son el esquema vigente.
+
+Un alias es una etiqueta con nombre que apunta a una versión concreta del modelo. Cuando se entrena una versión mejor, se mueve el alias `champion` a la nueva versión y el código que consume el modelo no cambia, porque siempre lo carga con `models:/<nombre>@champion`. Además, una misma versión puede tener varios aliases (por ejemplo, `champion` y `challenger`), algo que las etapas no permiten.
+
 ### 7. Artefactos
 
 Los experimentos registran, según la pregunta:
