@@ -1,0 +1,4 @@
+-r requirements.txt
+deepchecks==0.19.1
+numpy==1.26.4
+setuptools<81
