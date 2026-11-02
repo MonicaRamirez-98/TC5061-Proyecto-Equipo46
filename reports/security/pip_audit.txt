@@ -1,0 +1,55 @@
+Name          Version ID                  Fix Versions
+------------- ------- ------------------- ------------
+]8;;https://pypi.org/project/pyarrow/\pyarrow]8;;\       22.0.0  ]8;;https://osv.dev/vulnerability/PYSEC-2026-113\PYSEC-2026-113]8;;\      23.0.1
+]8;;https://pypi.org/project/pyarrow/\pyarrow]8;;\       22.0.0  ]8;;https://osv.dev/vulnerability/PYSEC-2026-113\PYSEC-2026-113]8;;\      23.0.1
+]8;;https://pypi.org/project/requests/\requests]8;;\      2.32.5  ]8;;https://osv.dev/vulnerability/PYSEC-2026-2275\PYSEC-2026-2275]8;;\     2.33.0
+]8;;https://pypi.org/project/requests/\requests]8;;\      2.32.5  ]8;;https://osv.dev/vulnerability/PYSEC-2026-2275\PYSEC-2026-2275]8;;\     2.33.0
+]8;;https://pypi.org/project/python-dotenv/\python-dotenv]8;;\ 1.2.1   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2270\PYSEC-2026-2270]8;;\     1.2.2
+]8;;https://pypi.org/project/python-dotenv/\python-dotenv]8;;\ 1.2.1   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2270\PYSEC-2026-2270]8;;\     1.2.2
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2661\PYSEC-2026-2661]8;;\     3.8.0rc0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-421\PYSEC-2026-421]8;;\      3.8.0rc0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2658\PYSEC-2026-2658]8;;\     3.8.0rc0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2656\PYSEC-2026-2656]8;;\     3.9.0rc0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2657\PYSEC-2026-2657]8;;\
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-425\PYSEC-2026-425]8;;\      3.9.0rc0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-423\PYSEC-2026-423]8;;\      3.8.1
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-419\PYSEC-2026-419]8;;\
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-94\PYSEC-2026-94]8;;\       3.11.0rc0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-93\PYSEC-2026-93]8;;\       3.11.1
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2221\PYSEC-2026-2221]8;;\     3.11.0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2655\PYSEC-2026-2655]8;;\     3.11.0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2219\PYSEC-2026-2219]8;;\     3.9.0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2654\PYSEC-2026-2654]8;;\     3.10.0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-424\PYSEC-2026-424]8;;\      3.9.0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-94\PYSEC-2026-94]8;;\       3.11.0rc0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-93\PYSEC-2026-93]8;;\       3.11.0rc0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-195\PYSEC-2026-195]8;;\      3.10.1
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2660\PYSEC-2026-2660]8;;\     3.10.0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-424\PYSEC-2026-424]8;;\      3.9.0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-421\PYSEC-2026-421]8;;\      3.8.0rc0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-419\PYSEC-2026-419]8;;\
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-425\PYSEC-2026-425]8;;\      3.9.0rc0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-423\PYSEC-2026-423]8;;\      3.8.1
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2220\PYSEC-2026-2220]8;;\     3.10.0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2659\PYSEC-2026-2659]8;;\     3.11.0rc0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2222\PYSEC-2026-2222]8;;\     3.11.0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2219\PYSEC-2026-2219]8;;\     3.9.0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2220\PYSEC-2026-2220]8;;\     3.11.0rc0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2221\PYSEC-2026-2221]8;;\     3.10.0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2222\PYSEC-2026-2222]8;;\     3.11.0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2654\PYSEC-2026-2654]8;;\     3.10.0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2655\PYSEC-2026-2655]8;;\     3.11.0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2656\PYSEC-2026-2656]8;;\     3.9.0rc0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2657\PYSEC-2026-2657]8;;\
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2660\PYSEC-2026-2660]8;;\     3.10.0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2659\PYSEC-2026-2659]8;;\     3.11.0rc0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2661\PYSEC-2026-2661]8;;\     3.8.0rc0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-2658\PYSEC-2026-2658]8;;\     3.8.0rc0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-195\PYSEC-2026-195]8;;\      3.10.1
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-3686\PYSEC-2026-3686]8;;\     3.13.0rc0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-3687\PYSEC-2026-3687]8;;\     3.15.0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-3687\PYSEC-2026-3687]8;;\     3.15.0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/PYSEC-2026-3686\PYSEC-2026-3686]8;;\     3.13.0rc0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/GHSA-gqvg-gmmx-x4hm\GHSA-gqvg-gmmx-x4hm]8;;\ 3.15.0
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/CVE-2026-53995\CVE-2026-53995]8;;\      3.17.2
+]8;;https://pypi.org/project/mlflow/\mlflow]8;;\        3.6.0   ]8;;https://osv.dev/vulnerability/CVE-2026-116691\CVE-2026-116691]8;;\     3.17.0

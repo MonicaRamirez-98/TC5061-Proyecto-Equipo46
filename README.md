@@ -456,3 +456,101 @@ En P2, el objetivo corresponde a un indicador indirecto de presión operacional 
 En P3, las predicciones requieren generar previamente los perfiles de estaciones con el mismo orden de características utilizado durante el entrenamiento.
 
 La experimentación y el Model Registry forman parte de un entorno académico local, por lo que no constituyen un despliegue productivo de los modelos.
+
+## Chequeos de seguridad (Semana 7)
+
+Esta sección documenta las prácticas y herramientas de seguridad aplicadas al repositorio: protección de credenciales y datos sensibles, análisis de código con **bandit** y análisis de dependencias con **pip-audit**. La evidencia de cada ejecución está en `docs/evidencia/` y los reportes completos en `reports/security/`.
+
+### Instalación de las herramientas
+
+```powershell
+python -m pip install bandit==1.9.4 pip-audit==2.10.1
+python -m bandit --version
+python -m pip_audit --version
+```
+
+![Herramientas instaladas](docs/evidencia/01_herramientas_instaladas.png)
+
+### 1. Credenciales y datos sensibles
+
+**`.gitignore`.** Excluye los archivos que no deben versionarse. Se verificó con `git check-ignore -v`:
+
+```powershell
+git check-ignore -v .env mlflow.db mlruns data/raw/ejemplo.csv models/modelo.pkl
+git check-ignore -v mlruns/ mlartifacts/
+```
+
+| Elemento | Regla de `.gitignore` |
+|---|---|
+| `.env` (variables locales) | línea 13 |
+| `data/raw/` (datos) | línea 16 |
+| `mlruns/` (experimentos de MLflow) | línea 25 |
+| `mlartifacts/` (artefactos de MLflow) | línea 26 |
+| `mlflow.db` (base de MLflow) | línea 27 |
+| `*.pkl` (modelos serializados) | línea 32 |
+
+![.gitignore: archivos](docs/evidencia/02_gitignore_archivos.png)
+![.gitignore: carpetas](docs/evidencia/03_gitignore_carpetas.png)
+
+**Variables de entorno.** El código no escribe configuración sensible: `mibici/config.py` carga un archivo `.env` local con `load_dotenv()` y los scripts de `mibici/modeling/` leen la dirección del servidor de MLflow con `os.getenv("MLFLOW_TRACKING_URI", ...)`. Es la única variable de entorno que usa el proyecto. Para documentarla se agregó `.env.example`, una plantilla sin valores secretos. Cada integrante crea su propio `.env` a partir de ella; ese archivo está en `.gitignore` y no se sube.
+
+```powershell
+git grep -n -i -E "getenv|environ|load_dotenv|dotenv"
+git ls-files | Select-String "env"
+```
+
+![Variables de entorno](docs/evidencia/04_variables_entorno.png)
+
+**Búsqueda de credenciales.** No hay contraseñas ni claves escritas en el código, no hay un archivo `.env` en el repositorio y nunca se subió uno en el historial: los tres comandos devuelven resultados vacíos.
+
+```powershell
+git grep -n -i -E "(password|passwd|secret|api[_-]?key|token)\s*[:=]" -- "*.py" "*.md" "*.yaml" "*.toml" "*.json"
+git ls-files .env
+git log --all --oneline -- .env
+```
+
+![Búsqueda de credenciales](docs/evidencia/05_secretos.png)
+
+### 2. Análisis de código con bandit
+
+```powershell
+python -m bandit -r mibici
+python -m bandit -r mibici -f txt -o reports/security/bandit.txt
+```
+
+Se revisaron 2475 líneas de código de `mibici/`. Resultado: **15 hallazgos, todos de severidad baja** (0 medios y 0 altos), de tres tipos y cinco de cada uno:
+
+| Código | Descripción | Cantidad |
+|---|---|---|
+| B404 | Se importa el módulo `subprocess` | 5 |
+| B603 | `subprocess` llamado sin `shell=True` (revisar que no reciba entradas no confiables) | 5 |
+| B607 | Se ejecuta un programa por su nombre (`git`), no por ruta completa | 5 |
+
+Están en cinco archivos de `mibici/modeling/`: `experiment_p1.py`, `experiment_p2.py`, `train.py`, `train_p2.py` y `train_p3.py`. En todos corresponden a la misma llamada, `subprocess.run` o `subprocess.check_output` con `["git", "rev-parse", "HEAD"]`, que obtiene el identificador del commit actual. Los argumentos son fijos, no se usa `shell=True` y no interviene ninguna entrada del usuario; en `experiment_p1.py` y `experiment_p2.py`, si la llamada falla, se devuelve `"unknown"`. Por eso se aceptan como riesgo bajo. El reporte completo está en `reports/security/bandit.txt`.
+
+![Resultado de bandit](docs/evidencia/06_bandit.png)
+
+### 3. Dependencias con pip-audit
+
+```powershell
+python -m pip_audit -r requirements.txt --no-deps --disable-pip -o reports/security/pip_audit.txt
+```
+
+Resultado (1 de noviembre de 2026): **53 vulnerabilidades conocidas en 4 paquetes** de `requirements.txt`:
+
+| Paquete | Versión fijada | Vulnerabilidades |
+|---|---|---|
+| `pyarrow` | 22.0.0 | 2 |
+| `requests` | 2.32.5 | 2 |
+| `python-dotenv` | 1.2.1 | 2 |
+| `mlflow` | 3.6.0 | 47 |
+
+El detalle de cada una, con la versión que la corrige, está en `reports/security/pip_audit.txt`. La revisión se hizo con `--no-deps`, es decir, solo sobre los paquetes listados en `requirements.txt`, sin sus dependencias indirectas.
+
+Riesgo conocido: las versiones fijadas en el proyecto tienen vulnerabilidades reportadas, sobre todo en `mlflow`. Actualizarlas puede cambiar los resultados de los experimentos, por lo que debe hacerse validando de nuevo el entrenamiento y el registro de modelos antes de modificar `requirements.txt`.
+
+![Resultado de pip-audit](docs/evidencia/08_pip_audit.png)
+
+### Uso de IA
+
+Se usó Claude (Anthropic, 2026) como apoyo para estructurar y redactar esta sección. Los comandos y las capturas son de mi propia ejecución.
