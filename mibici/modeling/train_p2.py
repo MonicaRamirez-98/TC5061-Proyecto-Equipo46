@@ -36,6 +36,7 @@ from mibici.config import (
     RANDOM_SEED,
 )
 from mibici.features import make_hourly_panel
+from mibici.modeling.data_validation import validate_panel_splits
 
 
 def load_inputs() -> tuple[pd.DataFrame, pd.DataFrame, dict]:
@@ -191,6 +192,15 @@ def main(
         risk_fraction=risk_fraction,
     )
     train, validation, test, bounds = chronological_split(panel)
+
+    validate_panel_splits(
+        train,
+        validation,
+        test,
+        label="target_risk_next_hour",
+        report_dir=PROJ_ROOT / "reports" / "deepchecks",
+        report_prefix="p2",
+    )
 
     y_train = train["target_risk_next_hour"].astype("int8").to_numpy()
     model = DummyClassifier(

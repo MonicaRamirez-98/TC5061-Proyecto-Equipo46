@@ -29,6 +29,7 @@ from mibici.config import (
     RANDOM_SEED,
 )
 from mibici.features import make_hourly_panel
+from mibici.modeling.data_validation import validate_panel_splits
 
 
 def load_inputs() -> tuple[pd.DataFrame, dict]:
@@ -165,6 +166,15 @@ def main(
     trips, manifest = load_inputs()
     panel = make_hourly_panel(trips)
     train, validation, test, bounds = chronological_split(panel)
+
+    validate_panel_splits(
+        train,
+        validation,
+        test,
+        label="target_departures_next_hour",
+        report_dir=PROJ_ROOT / "reports" / "deepchecks",
+        report_prefix="p1",
+    )
 
     y_train = train["target_departures_next_hour"].astype(float).to_numpy()
 
