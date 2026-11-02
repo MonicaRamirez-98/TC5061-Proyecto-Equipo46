@@ -275,6 +275,20 @@ La base `mlflow.db` y los artefactos se guardan localmente y están excluidos de
 
 Convención de ramas y de commits, protección de la rama principal y proceso de Pull Request y revisión.
 
+
+---
+
+## Semana 7 — Pruebas automatizadas y seguridad
+
+Como parte de la Semana 7 de Operaciones de Aprendizaje Automático, se incorporaron pruebas automatizadas con PyTest para validar funciones de procesamiento de datos, ingeniería de características, particiones temporales y reproducibilidad.
+
+Se ejecutaron satisfactoriamente 21 pruebas, sin fallas.
+
+La documentación técnica, los procedimientos de ejecución, los resultados y las evidencias se encuentran en:
+
+**[Consultar documentación de la Semana 7](docs/README_Semana7.md)**
+
+
 ## Integrantes
 
 - Ivan Plata Garnica
