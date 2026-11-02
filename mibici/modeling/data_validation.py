@@ -44,14 +44,13 @@ def _to_deepchecks_dataset(
     if data.duplicated(key_columns).any():
         raise ValueError("Hay registros duplicados de estación y hora.")
 
-    # La clave se mantiene estable entre train, validation y test.
     data["sample_id"] = (
         data["station_id"].astype(str)
         + "|"
         + data["target_time"].astype(str)
     )
 
-    # Evita incluir como características otros objetivos futuros.
+    # Excluye objetivos futuros que no son el objetivo validado.
     columns_to_drop = ["timestamp"] + sorted(_TARGET_COLUMNS - {label})
     data = data.drop(columns=columns_to_drop, errors="ignore")
 
@@ -109,5 +108,53 @@ def validate_panel_splits(
 
         result.save_as_html(
             str(report_dir / f"{report_prefix}_train_vs_{split_name}.html"),
+            as_widget=False,
+        )
+
+
+def validate_station_profiles(
+    profiles: pd.DataFrame,
+    metadata: pd.DataFrame,
+    *,
+    report_dir: Path,
+) -> None:
+    if profiles.empty:
+        raise ValueError("La matriz de perfiles de estaciones está vacía.")
+
+    if profiles.index.has_duplicates:
+        raise ValueError("Hay station_id duplicados en los perfiles.")
+
+    if metadata.empty or "station_id" not in metadata.columns:
+        raise ValueError("Los metadatos no contienen station_id.")
+
+    if metadata["station_id"].isna().any():
+        raise ValueError("Hay station_id faltantes en los metadatos.")
+
+    if metadata["station_id"].duplicated().any():
+        raise ValueError("Hay station_id duplicados en los metadatos.")
+
+    report_dir = Path(report_dir)
+    report_dir.mkdir(parents=True, exist_ok=True)
+
+    datasets = {
+        "profiles": Dataset(
+            profiles.reset_index(),
+            index_name="station_id",
+            cat_features=[],
+        ),
+        "metadata": Dataset(
+            metadata.copy(),
+            index_name="station_id",
+        ),
+    }
+
+    for name, dataset in datasets.items():
+        result = data_integrity(
+            n_samples=min(100_000, len(dataset.data)),
+            random_state=42,
+        ).run(dataset)
+
+        result.save_as_html(
+            str(report_dir / f"p3_{name}_integrity.html"),
             as_widget=False,
         )

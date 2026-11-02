@@ -43,11 +43,11 @@ from mibici.config import (
     RANDOM_SEED,
 )
 from mibici.features import build_station_profiles
+from mibici.modeling.data_validation import validate_station_profiles
 
 
 def load_inputs() -> tuple[pd.DataFrame, pd.DataFrame, dict]:
     """Carga viajes, estaciones y manifiesto de datos."""
-
     manifest = json.loads(
         MANIFEST_PATH.read_text(encoding="utf-8")
     )
@@ -100,7 +100,6 @@ def load_inputs() -> tuple[pd.DataFrame, pd.DataFrame, dict]:
 
 def git_commit() -> str:
     """Obtiene el commit actual para trazabilidad."""
-
     try:
         result = subprocess.run(
             ["git", "rev-parse", "HEAD"],
@@ -120,11 +119,6 @@ def main(
     hyperparameters: dict | None = None,
 ) -> None:
     """Entrena y registra un modelo P3 de agrupación de estaciones."""
-
-    # ------------------------------------------------------
-    # 1. Configuración de entrenamiento
-    # ------------------------------------------------------
-
     defaults = PROJECT_TRAIN_DEFAULTS["p3"]
 
     model_name = model_name or defaults["model"]
@@ -164,10 +158,6 @@ def main(
             "max_iter debe ser al menos 1."
         )
 
-    # ------------------------------------------------------
-    # 2. Configuración del servidor MLflow
-    # ------------------------------------------------------
-
     tracking_uri = os.getenv(
         "MLFLOW_TRACKING_URI",
         (PROJ_ROOT / "mlruns").as_uri(),
@@ -176,15 +166,19 @@ def main(
     mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
 
-    # ------------------------------------------------------
-    # 3. Carga de datos y construcción de perfiles
-    # ------------------------------------------------------
-
+    # Carga los datos y construye los perfiles de estaciones.
     trips, stations, manifest = load_inputs()
 
     profiles, metadata = build_station_profiles(
         trips,
         stations,
+    )
+
+    # Valida los perfiles y metadatos antes del entrenamiento.
+    validate_station_profiles(
+        profiles,
+        metadata,
+        report_dir=PROJ_ROOT / "reports" / "deepchecks",
     )
 
     if len(profiles) <= n_clusters:
@@ -198,12 +192,8 @@ def main(
         dtype="float32"
     )
 
-    # ------------------------------------------------------
-    # 4. Escalamiento y entrenamiento del modelo
-    # ------------------------------------------------------
-
+    # Escalamiento y entrenamiento del modelo.
     scaler = StandardScaler()
-
     values = scaler.fit_transform(raw_values)
 
     model = KMeans(
@@ -215,7 +205,7 @@ def main(
 
     labels = model.fit_predict(values)
 
-    # Se integran los dos componentes YA entrenados.
+    # Se integran los dos componentes ya entrenados.
     # No se ejecuta fit() nuevamente.
     pipeline = Pipeline(
         steps=[
@@ -224,10 +214,7 @@ def main(
         ]
     )
 
-    # ------------------------------------------------------
-    # 5. Firma del modelo y ejemplo de entrada
-    # ------------------------------------------------------
-
+    # Firma del modelo y ejemplo de entrada.
     input_example = raw_values[:5].copy()
 
     example_predictions = pipeline.predict(
@@ -253,10 +240,7 @@ def main(
             "al modelo original."
         )
 
-    # ------------------------------------------------------
-    # 6. Evaluación de agrupaciones
-    # ------------------------------------------------------
-
+    # Evaluación de agrupaciones.
     sample_size = min(
         10_000,
         len(values),
@@ -290,10 +274,6 @@ def main(
             np.sum(labels == cluster_id)
         )
 
-    # ------------------------------------------------------
-    # 7. Parámetros y trazabilidad
-    # ------------------------------------------------------
-
     params = {
         "question": "P3",
         "baseline": f"KMeans_{n_clusters}_clusters",
@@ -310,23 +290,15 @@ def main(
         "data_version": str(manifest["data_version"]),
     }
 
-    # ------------------------------------------------------
-    # 8. Información geográfica para visualización
-    # ------------------------------------------------------
-
+    # Información geográfica para visualización.
     map_data = metadata.copy()
-
     map_data["cluster"] = labels
 
-    # ------------------------------------------------------
-    # 9. Registro del experimento en MLflow
-    # ------------------------------------------------------
-
+    # Registro del experimento en MLflow.
     with mlflow.start_run(
         run_name=f"P3_kmeans_{n_clusters}_station_usage_profiles",
         nested=mlflow.active_run() is not None,
     ):
-
         mlflow.set_tags(
             {
                 "team": "46",
@@ -341,13 +313,9 @@ def main(
         )
 
         mlflow.log_params(params)
-
         mlflow.log_metrics(metrics)
 
-        # --------------------------------------------------
-        # 10. Registro del modelo entrenado
-        # --------------------------------------------------
-
+        # Registro del modelo entrenado.
         model_info = mlflow.sklearn.log_model(
             sk_model=pipeline,
             name="model",
@@ -355,43 +323,28 @@ def main(
             input_example=input_example,
         )
 
-        # El modelo contiene el escalador y KMeans.
-        # MLflow conserva sus dependencias y firma.
-
         mlflow.set_tag(
             "logged_model_uri",
             model_info.model_uri,
         )
 
-        # --------------------------------------------------
-        # 11. Registro de artefactos de datos
-        # --------------------------------------------------
-
+        # Registro de artefactos de datos.
         mlflow.log_artifact(
             str(MANIFEST_PATH),
             artifact_path="data",
         )
 
-        # Guardamos la estructura de las características
-        # para reconstruir correctamente la entrada.
         mlflow.log_dict(
             {
-                "feature_names": list(
-                    profiles.columns
-                ),
-                "feature_count": int(
-                    profiles.shape[1]
-                ),
+                "feature_names": list(profiles.columns),
+                "feature_count": int(profiles.shape[1]),
                 "input_dtype": "float32",
                 "feature_order_required": True,
             },
             "data/feature_schema.json",
         )
 
-        # --------------------------------------------------
-        # 12. Configuración de entrenamiento
-        # --------------------------------------------------
-
+        # Configuración de entrenamiento.
         mlflow.log_dict(
             {
                 "question": "P3",
@@ -403,28 +356,17 @@ def main(
                     "random_state": RANDOM_SEED,
                 },
                 "preprocessing": "StandardScaler",
-                "data_version": str(
-                    manifest["data_version"]
-                ),
+                "data_version": str(manifest["data_version"]),
                 "git_commit": git_commit(),
             },
             "config/training_config.json",
         )
 
-        # --------------------------------------------------
-        # 13. Gráfica de estaciones por cluster
-        # --------------------------------------------------
-
+        # Gráfica de estaciones por cluster.
         with tempfile.TemporaryDirectory() as temp_dir:
+            fig, ax = plt.subplots(figsize=(8, 7))
 
-            fig, ax = plt.subplots(
-                figsize=(8, 7)
-            )
-
-            for cluster_id, group in map_data.groupby(
-                "cluster"
-            ):
-
+            for cluster_id, group in map_data.groupby("cluster"):
                 ax.scatter(
                     group["lon"],
                     group["lat"],
@@ -434,29 +376,23 @@ def main(
                 )
 
             ax.set(
-                title=(
-                    "P3: grupos de estaciones "
-                    "por patrón de uso"
-                ),
+                title="P3: grupos de estaciones por patrón de uso",
                 xlabel="Longitud",
                 ylabel="Latitud",
                 aspect="equal",
             )
 
             ax.legend()
-
             fig.tight_layout()
 
             artifact_path = (
-                Path(temp_dir)
-                / "p3_station_clusters_map.png"
+                Path(temp_dir) / "p3_station_clusters_map.png"
             )
 
             fig.savefig(
                 artifact_path,
                 dpi=160,
             )
-
             plt.close(fig)
 
             mlflow.log_artifact(
@@ -464,24 +400,17 @@ def main(
                 artifact_path="plots",
             )
 
-        # --------------------------------------------------
-        # 14. Resumen final del entrenamiento
-        # --------------------------------------------------
-
+        # Resumen final del entrenamiento.
         mlflow.log_dict(
             {
                 "model": "KMeans",
                 "n_clusters": n_clusters,
                 "station_count": len(profiles),
                 "silhouette": metrics["silhouette"],
-                "calinski_harabasz": metrics[
-                    "calinski_harabasz"
-                ],
+                "calinski_harabasz": metrics["calinski_harabasz"],
                 "inertia": metrics["inertia"],
                 "cluster_distribution": {
-                    str(cluster_id): int(
-                        np.sum(labels == cluster_id)
-                    )
+                    str(cluster_id): int(np.sum(labels == cluster_id))
                     for cluster_id in range(n_clusters)
                 },
                 "model_uri": model_info.model_uri,
