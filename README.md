@@ -681,17 +681,17 @@ La siguiente evidencia presenta el resumen de la ejecución automatizada, confir
 
 ---
 
-### 2. Prueba de reproducibilidad del entrenamiento
+#### 1.9. Prueba de reproducibilidad del entrenamiento
 
 **Responsable:** Axel Fernando Rábago Díaz.
 
-#### 2.1. Objetivo
+##### 1.9.1. Objetivo
 
 La reproducibilidad es un elemento fundamental de MLOps, ya que permite comprobar que un experimento puede repetirse bajo condiciones controladas y producir resultados consistentes.
 
 Para esta actividad se incorporó una prueba relacionada con el algoritmo de clustering KMeans, utilizado en la pregunta P3 del proyecto MiBici, cuyo propósito es identificar grupos de estaciones que comparten patrones de uso similares.
 
-#### 2.2. Procedimiento
+##### 1.9.2. Procedimiento
 
 Se realizaron dos entrenamientos controlados utilizando:
 
@@ -707,7 +707,7 @@ Adicionalmente, se verificó que la semilla configurada en el proyecto correspon
 
 Es importante considerar que establecer una semilla fija ayuda a controlar la aleatoriedad, pero la reproducibilidad también depende de otros elementos, como los datos utilizados, las versiones de las bibliotecas y las condiciones de ejecución.
 
-#### 2.3. Ejecución de la prueba
+##### 1.9.3. Ejecución de la prueba
 
 Para ejecutar únicamente las pruebas de reproducibilidad:
 
@@ -715,7 +715,7 @@ Para ejecutar únicamente las pruebas de reproducibilidad:
 python -m pytest tests/test_reproducibility.py -v
 ```
 
-#### 2.4. Resultados obtenidos
+##### 1.9.4. Resultados obtenidos
 
 Se ejecutaron las siguientes pruebas:
 
@@ -736,7 +736,7 @@ Es importante señalar que esta validación utiliza datos sintéticos y no repre
 
 Por lo tanto, se considera una prueba automatizada de reproducibilidad de un componente del entrenamiento.
 
-#### 2.5. Evidencia de reproducibilidad
+##### 1.9.5. Evidencia de reproducibilidad
 
 **Evidencia 3. Ejecución de las pruebas de reproducibilidad de KMeans P3**
 
@@ -746,17 +746,17 @@ La siguiente captura muestra la ejecución individual de las dos pruebas de repr
 
 ---
 
-### 3. Validación de datos con DeepChecks
+### 2. Validación de datos con DeepChecks
 
 **Responsable:** Ivan Plata Garnica.
 
 **Estado:** Implementado y ejecutado para los pipelines P1, P2 y P3.
 
-#### 3.1. Objetivo
+#### 2.1. Objetivo
 
 Incorporar validaciones reproducibles de integridad y calidad de datos en los conjuntos utilizados por los modelos. Los chequeos ayudan a detectar esquemas incompletos, valores faltantes o inválidos, duplicados, tipos inconsistentes, posibles anomalías y cambios de distribución entre particiones, cuando aplica.
 
-#### 3.2. Implementación
+#### 2.2. Implementación
 
 La lógica se encuentra en `mibici/modeling/data_validation.py` y se invoca desde los módulos de entrenamiento:
 
@@ -789,9 +789,9 @@ Los reportes HTML se generan en `reports/deepchecks/`:
 | P2 | `p2_train_integrity.html`, `p2_validation_integrity.html`, `p2_test_integrity.html`, `p2_train_vs_validation.html`, `p2_train_vs_test.html` |
 | P3 | `p3_profiles_integrity.html`, `p3_metadata_integrity.html` |
 
-En total, las ejecuciones documentadas generaron 12 reportes: cinco para P1, cinco para P2 y dos para P3.
+En total, las ejecuciones documentadas generaron 12 reportes: cinco para P1, cinco para P2 y dos para P3. Por su tamaño, los HTML se generan localmente y `reports/deepchecks/` está excluido de Git; las capturas de ejecución que se conservan como evidencia están en `docs/evidencias_semana7/`.
 
-#### 3.3. Resultados de validación
+#### 2.3. Resultados de validación
 
 Los tres comandos terminaron correctamente y registraron sus ejecuciones en MLflow. Las suites de DeepChecks se ejecutaron y generaron los reportes indicados. Las métricas de la tabla siguiente pertenecen a los modelos; no son puntuaciones de DeepChecks.
 
@@ -812,7 +812,7 @@ Estas condiciones señaladas requieren interpretación en el contexto del proyec
 
 Durante las ejecuciones también aparecieron advertencias de dependencias (incluida una advertencia deprecada de `DataFrame.applymap` en DeepChecks y, en P3, inferencia automática de variables categóricas y una advertencia numérica de correlación). No impidieron que los comandos terminaran ni que se guardaran los reportes.
 
-#### 3.4. Evidencias
+#### 2.4. Evidencias
 
 Las siguientes capturas muestran el comando de cada pipeline, la ejecución de las suites de DeepChecks y el mensaje final de registro exitoso.
 
@@ -830,22 +830,23 @@ Las siguientes capturas muestran el comando de cada pipeline, la ejecución de l
 
 ---
 
-### 4. Revisión de seguridad del repositorio
+### 3. Revisión de seguridad del repositorio
 
 **Responsable:** Mónica María Ramírez Mejía.
 
-**Estado:** Revisión ejecutada y documentada. Se registran hallazgos de Bandit y pip-audit, además de una observación pendiente en la regla de exclusión del entorno local.
+**Estado:** Revisión ejecutada y documentada. Se registran hallazgos de Bandit y pip-audit. El 4 de noviembre de 2026 se añadieron reglas para excluir el entorno `.venv311/` y los reportes HTML locales de DeepChecks.
 
-#### 4.1. Objetivo
+#### 3.1. Objetivo
 
 Revisar el manejo de credenciales y datos sensibles, las exclusiones del repositorio y las vulnerabilidades reportadas por herramientas de análisis estático y de dependencias.
 
-#### 4.2. Credenciales, datos sensibles y reglas de exclusión
+#### 3.2. Credenciales, datos sensibles y reglas de exclusión
 
-El archivo [.gitignore](.gitignore) excluye .env, los directorios venv/, .venv/ y env/, los datos locales, los archivos de MLflow y los modelos serializados. Se comprobó con:
+El archivo [.gitignore](.gitignore) excluye `.env`, los directorios `venv/`, `.venv/`, `.venv311/` y `env/`, los datos locales, los archivos de MLflow, los modelos serializados y los reportes HTML locales de DeepChecks. Se comprobó con:
 
     git check-ignore -v .env mlflow.db mlruns data/raw/ejemplo.csv models/modelo.pkl
     git check-ignore -v mlruns/ mlartifacts/
+    git check-ignore -v .venv311/ reports/deepchecks/
 
 | Elemento | Regla observada |
 |---|---|
@@ -854,9 +855,10 @@ El archivo [.gitignore](.gitignore) excluye .env, los directorios venv/, .venv/ 
 | mlruns/ y mlartifacts/ | Excluidos |
 | mlflow.db | Excluido |
 | Archivos .pkl | Excluidos |
-| Entornos venv/, .venv/ y env/ | Excluidos |
+| Entornos venv/, .venv/, .venv311/ y env/ | Excluidos |
+| Reportes HTML locales de DeepChecks | Excluidos; las capturas de evidencia sí se conservan en `docs/evidencias_semana7/` |
 
-**Observación:** la carpeta .venv311/ usada en esta copia no coincide con esas reglas y aparece sin seguimiento en Git. Debe agregarse una regla para excluirla antes de preparar cambios, o evitar incluirla al hacer git add.
+La regla `.venv311/` evita que el entorno virtual local se agregue accidentalmente al repositorio. Los reportes HTML de DeepChecks también se regeneran localmente al ejecutar los pipelines; por su tamaño, no se versionan. Las capturas incluidas en `docs/evidencias_semana7/` documentan las ejecuciones.
 
 Las referencias de configuración se cargan localmente con load_dotenv() en mibici/config.py. El archivo [.env.example](.env.example) contiene la plantilla sin credenciales; la variable de ejecución observada es MLFLOW_TRACKING_URI. Cada integrante crea su .env local, el cual está excluido por Git.
 
@@ -878,7 +880,7 @@ La búsqueda se limita a esos patrones y tipos de archivo; no constituye una gar
 
 
 
-#### 4.3. Análisis estático con Bandit
+#### 3.3. Análisis estático con Bandit
 
 Se instalaron Bandit 1.9.4 y pip-audit 2.10.1:
 
@@ -903,7 +905,7 @@ Los hallazgos están en experiment_p1.py, experiment_p2.py, train.py, train_p2.p
 
 
 
-#### 4.4. Auditoría de dependencias con pip-audit
+#### 3.4. Auditoría de dependencias con pip-audit
 
 Se ejecutó la auditoría el 1 de noviembre de 2026:
 
@@ -924,7 +926,7 @@ Las dependencias vulnerables no se actualizaron como parte de esta revisión. En
 
 
 
-#### 4.5. Evidencias
+#### 3.5. Evidencias
 
 Las capturas siguientes documentan la instalación de herramientas, las comprobaciones de credenciales y exclusiones, y las salidas de Bandit y pip-audit.
 
@@ -960,15 +962,15 @@ Las capturas siguientes documentan la instalación de herramientas, las comproba
 
 ![Resumen de pip-audit](docs/evidencia/08_pip_audit.png)
 
-#### 4.6. Uso de IA
+#### 3.6. Uso de IA
 
 Se usó Claude (Anthropic, 2026) como apoyo para estructurar y redactar esta sección. Los comandos y las capturas corresponden a la ejecución reportada por Mónica.
 
 ---
 
-### 5. Organización y ejecución de las verificaciones
+### 4. Organización y ejecución de las verificaciones
 
-#### 5.1. Estructura centralizada de pruebas
+#### 4.1. Estructura centralizada de pruebas
 
 Con la finalidad de facilitar la ejecución y mantenimiento de las pruebas, se estableció una estructura centralizada dentro de la carpeta `tests/`.
 
@@ -976,7 +978,7 @@ La configuración de PyTest se encuentra en el archivo `pytest.ini`.
 
 Esta organización permite incorporar nuevas pruebas conforme evolucione el proyecto, manteniendo un procedimiento de ejecución consistente.
 
-#### 5.2. Comando general de ejecución
+#### 4.2. Comando general de ejecución
 
 Para ejecutar las pruebas automatizadas ubicadas en la carpeta `tests/`:
 
@@ -986,7 +988,7 @@ python -m pytest tests/ -v
 
 La ejecución puede realizarse desde cualquier terminal que tenga acceso al proyecto y cuente con las dependencias necesarias.
 
-#### 5.3. Ejecución individual de pruebas
+#### 4.3. Ejecución individual de pruebas
 
 También pueden ejecutarse las pruebas de forma independiente:
 
@@ -1018,13 +1020,13 @@ Las verificaciones de seguridad mediante herramientas externas deberán document
 
 ---
 
-### 6. Trabajo colaborativo y control de versiones
+### 5. Trabajo colaborativo y control de versiones
 
 El trabajo de la Semana 7 se desarrolla mediante ramas independientes, permitiendo que cada integrante incorpore sus aportaciones sin modificar directamente el trabajo de los demás.
 
 Esta metodología facilita la revisión de cambios, la identificación de responsables y la integración de nuevas funcionalidades mediante Pull Requests.
 
-#### 6.1. Contribución de Axel Fernando Rábago Díaz
+#### 5.1. Contribución de Axel Fernando Rábago Díaz
 
 **Rama de trabajo:**
 
@@ -1044,33 +1046,38 @@ Se incorporaron cinco archivos nuevos y 286 líneas de código, correspondientes
 
 Los cambios fueron validados localmente mediante la ejecución satisfactoria de las 21 pruebas.
 
-La integración definitiva de esta contribución al repositorio central deberá verificarse mediante GitHub y su correspondiente Pull Request.
+La contribución quedó integrada en `main` mediante el Pull Request #6.
 
-#### 6.2. Contribuciones de Ivan Plata Garnica y Monica Maria Ramirez Mejia
+#### 5.2. Contribuciones de Ivan Plata Garnica y Monica Maria Ramirez Mejia
 
 **Ivan Plata Garnica — validación de datos con DeepChecks**
 
 - Rama: feature/semana7-deepchecks-iniciales.
 - Pull Request #9, integrado a main.
-- La implementación valida P1, P2 y P3; los comandos, resultados y capturas se documentan en la sección 3.
+- La implementación valida P1, P2 y P3; los comandos, resultados y capturas se documentan en la sección 2.
 
 **Monica Maria Ramirez Mejia — chequeos de seguridad**
 
+- Pull Request #5, integrado a main.
 - Ejecutó y documentó las revisiones de .gitignore, variables de entorno y búsqueda de credenciales.
-- Ejecutó Bandit y pip-audit; los resultados, reportes y capturas se encuentran en la sección 4.
-- La revisión detectó vulnerabilidades de dependencias y que .venv311/ no está cubierta por las reglas actuales de .gitignore. La documentación deja registradas ambas observaciones para su seguimiento.
+- Ejecutó Bandit y pip-audit; los resultados, reportes y capturas se encuentran en la sección 3.
+- La revisión detectó vulnerabilidades de dependencias, documentadas para su seguimiento. El 4 de noviembre de 2026 se añadió y verificó la regla de exclusión para `.venv311/`.
 
-#### 6.3. Repositorio del proyecto
+#### 5.3. Repositorio del proyecto
 
 Repositorio central del Equipo 46:
 
 https://github.com/iplatamx/TC5061-Proyecto-Equipo46
 
-La rama principal y versión consolidada del repositorio es main; las contribuciones se integran en esa rama mediante Pull Requests.
+**Nombre del entregable:** `TC5061-Proyecto-Equipo46`.
+
+La rama principal y versión consolidada del repositorio es `main`; las contribuciones de Semana 7 fueron integradas mediante los Pull Requests #5, #6, #9 y #10.
+
+**Informe PDF de Semana 7:** [TC5061_Semana7_Equipo46.pdf](docs/TC5061_Semana7_Equipo46.pdf).
 
 ---
 
-### 7. Conclusiones de la Semana 7
+### 6. Conclusiones de la Semana 7
 
 Las pruebas automatizadas implementadas permiten fortalecer la confiabilidad del proyecto MiBici, al comprobar el comportamiento de funciones importantes utilizadas durante la preparación y transformación de datos.
 
@@ -1082,11 +1089,11 @@ Consideramos que la incorporación de pruebas automatizadas representa un avance
 
 Finalmente, la organización de las pruebas y su documentación facilita que los integrantes del equipo puedan ejecutar nuevamente las verificaciones, revisar los resultados y continuar incorporando controles de calidad conforme evolucione el proyecto.
 
-Los resultados de DeepChecks y de los chequeos de seguridad se documentan en las secciones 3 y 4, junto con los comandos, hallazgos y evidencias disponibles.
+Los resultados de DeepChecks y de los chequeos de seguridad se documentan en las secciones 2 y 3, junto con los comandos, hallazgos y evidencias disponibles.
 
 ---
 
-### 8. Referencias
+### 7. Referencias
 
 Bandit. (s. f.). *Bandit documentation*. https://bandit.readthedocs.io/en/latest/
 
