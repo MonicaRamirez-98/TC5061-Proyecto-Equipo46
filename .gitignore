@@ -6,6 +6,7 @@ __pycache__/
 
 # Entornos virtuales
 .venv/
+.venv311/
 venv/
 env/
 
@@ -25,6 +26,9 @@ data/external/
 mlruns/
 mlartifacts/
 mlflow.db
+
+# Reportes HTML generados localmente por DeepChecks
+reports/deepchecks/
 
 # Modelos serializados
 models/*
