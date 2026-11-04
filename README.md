@@ -278,17 +278,6 @@ Convención de ramas y de commits, protección de la rama principal y proceso de
 
 ---
 
-## Semana 7 — Pruebas automatizadas y seguridad
-
-Como parte de la Semana 7 de Operaciones de Aprendizaje Automático, se incorporaron pruebas automatizadas con PyTest para validar funciones de procesamiento de datos, ingeniería de características, particiones temporales y reproducibilidad.
-
-Se ejecutaron satisfactoriamente 21 pruebas, sin fallas.
-
-La documentación técnica, los procedimientos de ejecución, los resultados y las evidencias se encuentran en:
-
-**[Consultar documentación de la Semana 7](docs/README_Semana7.md)**
-
-
 ## Integrantes
 
 - Ivan Plata Garnica
@@ -457,100 +446,654 @@ En P3, las predicciones requieren generar previamente los perfiles de estaciones
 
 La experimentación y el Model Registry forman parte de un entorno académico local, por lo que no constituyen un despliegue productivo de los modelos.
 
-## Chequeos de seguridad (Semana 7)
+## Semana 7 — Pruebas automatizadas, validación y seguridad
 
-Esta sección documenta las prácticas y herramientas de seguridad aplicadas al repositorio: protección de credenciales y datos sensibles, análisis de código con **bandit** y análisis de dependencias con **pip-audit**. La evidencia de cada ejecución está en `docs/evidencia/` y los reportes completos en `reports/security/`.
-
-### Instalación de las herramientas
-
-```powershell
-python -m pip install bandit==1.9.4 pip-audit==2.10.1
-python -m bandit --version
-python -m pip_audit --version
-```
-
-![Herramientas instaladas](docs/evidencia/01_herramientas_instaladas.png)
-
-### 1. Credenciales y datos sensibles
-
-**`.gitignore`.** Excluye los archivos que no deben versionarse. Se verificó con `git check-ignore -v`:
-
-```powershell
-git check-ignore -v .env mlflow.db mlruns data/raw/ejemplo.csv models/modelo.pkl
-git check-ignore -v mlruns/ mlartifacts/
-```
-
-| Elemento | Regla de `.gitignore` |
+| Campo | Valor |
 |---|---|
-| `.env` (variables locales) | línea 13 |
-| `data/raw/` (datos) | línea 16 |
-| `mlruns/` (experimentos de MLflow) | línea 25 |
-| `mlartifacts/` (artefactos de MLflow) | línea 26 |
-| `mlflow.db` (base de MLflow) | línea 27 |
-| `*.pkl` (modelos serializados) | línea 32 |
+| Proyecto | MiBici — Equipo 46 |
+| Materia | Operaciones de Aprendizaje Automático |
+| Institución | Tecnológico de Monterrey |
+| Actividad | Tests + Chequeos de seguridad básicos integrados al repositorio |
+| Modalidad | Colaborativa |
 
-![.gitignore: archivos](docs/evidencia/02_gitignore_archivos.png)
-![.gitignore: carpetas](docs/evidencia/03_gitignore_carpetas.png)
+---
 
-**Variables de entorno.** El código no escribe configuración sensible: `mibici/config.py` carga un archivo `.env` local con `load_dotenv()` y los scripts de `mibici/modeling/` leen la dirección del servidor de MLflow con `os.getenv("MLFLOW_TRACKING_URI", ...)`. Es la única variable de entorno que usa el proyecto. Para documentarla se agregó `.env.example`, una plantilla sin valores secretos. Cada integrante crea su propio `.env` a partir de ella; ese archivo está en `.gitignore` y no se sube.
+### Objetivo
 
-```powershell
-git grep -n -i -E "getenv|environ|load_dotenv|dotenv"
-git ls-files | Select-String "env"
+Durante la Semana 7 se incorporan pruebas automatizadas y mecanismos de validación al proyecto MiBici del Equipo 46, con el propósito de fortalecer la calidad, confiabilidad, reproducibilidad y seguridad del código desarrollado.
+
+A diferencia de las semanas anteriores, enfocadas principalmente en el entrenamiento, evaluación y registro de modelos mediante MLflow, esta etapa busca comprobar que las funciones del proyecto produzcan resultados correctos, que se puedan identificar comportamientos inesperados y que los experimentos puedan reproducirse bajo condiciones controladas.
+
+Las actividades se organizaron en tres componentes principales:
+
+1. **Pruebas unitarias y reproducibilidad mediante PyTest:** validar funciones clave del proyecto, incluyendo casos normales, casos límite y consistencia del entrenamiento.
+2. **Validación de calidad de datos mediante DeepChecks:** identificar posibles inconsistencias, valores faltantes, duplicados y cambios en las distribuciones de los datos.
+3. **Revisión de seguridad del repositorio:** verificar la protección de credenciales, el manejo adecuado de información sensible y posibles vulnerabilidades del código o sus dependencias.
+
+Adicionalmente, se estableció una estructura organizada de pruebas que permite ejecutarlas desde la raíz del repositorio mediante un solo comando.
+
+---
+
+### 1. Pruebas unitarias con PyTest
+
+**Responsable:** Axel Fernando Rábago Díaz.
+
+#### 1.1. Propósito
+
+Se implementaron pruebas automatizadas utilizando PyTest, con el objetivo de validar funciones clave del proyecto relacionadas con la preparación de datos, la ingeniería de características, las particiones temporales y la reproducibilidad.
+
+Las pruebas incluyen escenarios normales, casos límite y condiciones inválidas, permitiendo identificar errores antes de que puedan afectar los resultados del entrenamiento.
+
+Esta implementación busca fortalecer la confiabilidad del código y facilitar que futuras modificaciones puedan verificarse sin necesidad de ejecutar nuevamente todos los procesos del proyecto.
+
+#### 1.2. Organización de las pruebas
+
+Se incorporó la carpeta `tests/` y el archivo `pytest.ini` en la raíz del repositorio.
+
+La estructura es la siguiente:
+
+```text
+TC5061-Proyecto-Equipo46/
+├── data/
+├── docs/
+│   ├── README_Semana7.md
+│   └── docs/evidencias_semana7/
+│       ├── 01_pytest_21_pruebas.jpeg
+│       ├── 02_pytest_resumen.jpeg
+│       └── 03_pytest_reproducibilidad.jpeg
+├── mibici/
+├── models/
+├── notebooks/
+├── references/
+├── reports/
+├── tests/
+│   ├── test_dataset.py
+│   ├── test_features.py
+│   ├── test_reproducibility.py
+│   └── test_splits.py
+├── .gitignore
+├── MLproject
+├── pyproject.toml
+├── pytest.ini
+├── README.md
+└── requirements.txt
 ```
 
-![Variables de entorno](docs/evidencia/04_variables_entorno.png)
+Cada archivo contiene pruebas específicas para evaluar diferentes componentes del proyecto.
 
-**Búsqueda de credenciales.** No hay contraseñas ni claves escritas en el código, no hay un archivo `.env` en el repositorio y nunca se subió uno en el historial: los tres comandos devuelven resultados vacíos.
+Esta organización permite mantener separadas las pruebas del código principal y facilita su mantenimiento conforme se incorporen nuevas funcionalidades.
+
+#### 1.3. Pruebas implementadas
+
+Se desarrollaron y ejecutaron 21 casos de prueba, distribuidos de la siguiente manera:
+
+| Archivo | Pruebas | Descripción |
+|---|---:|---|
+| `test_dataset.py` | 6 | Validación de fechas, nombres, viajes y estaciones. |
+| `test_features.py` | 9 | Validación de características para demanda, riesgo y perfiles de estaciones. |
+| `test_reproducibility.py` | 2 | Reproducibilidad controlada de KMeans y verificación de la semilla. |
+| `test_splits.py` | 4 | Validación de particiones temporales y prevención de fuga de información. |
+| **Total** | **21** | **Todas las pruebas se ejecutaron satisfactoriamente.** |
+
+#### 1.4. Principales escenarios evaluados
+
+##### Preparación y limpieza de datos
+
+Se verificaron las funciones relacionadas con el procesamiento inicial de la información de MiBici, considerando:
+
+- Generación correcta de rangos de meses, incluyendo cambios de año.
+- Normalización de nombres, acentos y espacios.
+- Eliminación de registros duplicados.
+- Exclusión de información personal innecesaria.
+- Identificación de columnas obligatorias faltantes.
+- Tratamiento de estaciones que presentan coordenadas inválidas.
+
+Estas pruebas permiten verificar que las funciones de preparación de datos respondan adecuadamente ante diferentes condiciones.
+
+##### Ingeniería de características
+
+Se evaluaron funciones que permiten construir las variables utilizadas por los modelos del proyecto.
+
+Los escenarios incluyen:
+
+- Comprobación de que el objetivo de predicción corresponda a la hora siguiente.
+- Validación de parámetros de riesgo dentro de los rangos permitidos.
+- Manejo de conjuntos de viajes vacíos.
+- Identificación de columnas faltantes.
+- Construcción de perfiles de estaciones considerando siete días de la semana y 24 horas.
+- Exclusión de estaciones inactivas.
+- Identificación de situaciones en las que no existen estaciones válidas para el análisis.
+
+Estas verificaciones son importantes porque un error en la generación de características puede afectar directamente el entrenamiento y las predicciones.
+
+##### Particiones temporales
+
+Se incorporaron pruebas para verificar que los conjuntos de entrenamiento, validación y prueba respeten el orden cronológico.
+
+Los principales aspectos evaluados fueron:
+
+- Conservación del orden temporal.
+- Separación adecuada de periodos.
+- Prevención de fuga de información temporal (*data leakage*).
+- Validación del comportamiento cuando el periodo disponible es insuficiente.
+
+Estas pruebas ayudan a evitar que el modelo utilice información futura durante su entrenamiento, lo que podría generar evaluaciones artificialmente favorables.
+
+#### 1.5. Preparación del entorno
+
+Para reproducir las pruebas se recomienda utilizar Python 3.11 y un entorno virtual con las dependencias del proyecto instaladas.
+
+Desde la raíz del repositorio, crear el entorno virtual en Windows:
 
 ```powershell
-git grep -n -i -E "(password|passwd|secret|api[_-]?key|token)\s*[:=]" -- "*.py" "*.md" "*.yaml" "*.toml" "*.json"
-git ls-files .env
-git log --all --oneline -- .env
+py -3.11 -m venv .venv
 ```
+
+Activarlo:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+Instalar las dependencias:
+
+```powershell
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m pip install -e .
+python -m pip install pytest
+```
+
+Para verificar PyTest:
+
+```powershell
+python -m pytest --version
+```
+
+La ejecución documentada se realizó utilizando el siguiente entorno:
+
+| Componente | Configuración |
+|---|---|
+| Sistema operativo | Windows |
+| Python | 3.11.9 |
+| PyTest | 9.2.0 |
+| Entorno de desarrollo | Visual Studio Code |
+| Entorno virtual | `.venv` |
+| Repositorio | TC5061-Proyecto-Equipo46 |
+
+#### 1.6. Ejecución de las pruebas
+
+Con el entorno virtual activado, ejecutar el siguiente comando desde la raíz del repositorio:
+
+```powershell
+python -m pytest tests/ -v
+```
+
+El comando permite ejecutar las pruebas ubicadas dentro de la carpeta `tests/` de forma automatizada.
+
+También es posible obtener un resumen más compacto:
+
+```powershell
+python -m pytest tests/ -q
+```
+
+Estas pruebas utilizan conjuntos de datos de prueba pequeños y controlados, por lo que no requieren iniciar el servidor de MLflow ni realizar nuevamente la ingesta completa de los datos históricos de MiBici.
+
+#### 1.7. Resultados obtenidos
+
+La ejecución de las pruebas se realizó satisfactoriamente.
+
+| Indicador | Resultado |
+|---|---:|
+| Pruebas recolectadas | 21 |
+| Pruebas aprobadas | 21 |
+| Pruebas fallidas | 0 |
+| Errores de ejecución | 0 |
+| Advertencias | 2 |
+| Tiempo de ejecución | 9.38 segundos |
+| Porcentaje de pruebas aprobadas | 100% |
+
+El resultado final obtenido en la terminal fue:
+
+```text
+21 passed, 2 warnings in 9.38s
+```
+
+Las dos advertencias corresponden a funciones de la dependencia `click` utilizadas por `typer`, identificadas como obsoletas para versiones futuras.
+
+Estas advertencias no provocaron fallas en las pruebas ejecutadas.
+
+El porcentaje de aprobación del 100% corresponde exclusivamente a los 21 casos ejecutados y no debe confundirse con un porcentaje de cobertura total del código del proyecto.
+
+#### 1.8. Evidencias de las pruebas unitarias
+
+**Evidencia 1. Ejecución de las 21 pruebas con PyTest**
+
+La siguiente captura muestra los casos ejecutados, sus nombres y los resultados satisfactorios.
+
+![Ejecución de las 21 pruebas unitarias con PyTest](docs/evidencias_semana7/01_pytest_21_pruebas.jpeg)
+
+**Evidencia 2. Resumen de resultados de PyTest**
+
+La siguiente evidencia presenta el resumen de la ejecución automatizada, confirmando que las 21 pruebas finalizaron satisfactoriamente.
+
+![Resumen de resultados de PyTest](docs/evidencias_semana7/02_pytest_resumen.jpeg)
+
+---
+
+### 2. Prueba de reproducibilidad del entrenamiento
+
+**Responsable:** Axel Fernando Rábago Díaz.
+
+#### 2.1. Objetivo
+
+La reproducibilidad es un elemento fundamental de MLOps, ya que permite comprobar que un experimento puede repetirse bajo condiciones controladas y producir resultados consistentes.
+
+Para esta actividad se incorporó una prueba relacionada con el algoritmo de clustering KMeans, utilizado en la pregunta P3 del proyecto MiBici, cuyo propósito es identificar grupos de estaciones que comparten patrones de uso similares.
+
+#### 2.2. Procedimiento
+
+Se realizaron dos entrenamientos controlados utilizando:
+
+- El mismo conjunto de datos sintéticos.
+- La misma configuración del algoritmo KMeans.
+- La misma semilla aleatoria.
+- Los mismos parámetros de entrenamiento.
+- Las mismas condiciones de comparación.
+
+Posteriormente, se compararon las predicciones obtenidas y la métrica correspondiente para identificar posibles diferencias entre ambas ejecuciones.
+
+Adicionalmente, se verificó que la semilla configurada en el proyecto correspondiera a un valor entero.
+
+Es importante considerar que establecer una semilla fija ayuda a controlar la aleatoriedad, pero la reproducibilidad también depende de otros elementos, como los datos utilizados, las versiones de las bibliotecas y las condiciones de ejecución.
+
+#### 2.3. Ejecución de la prueba
+
+Para ejecutar únicamente las pruebas de reproducibilidad:
+
+```powershell
+python -m pytest tests/test_reproducibility.py -v
+```
+
+#### 2.4. Resultados obtenidos
+
+Se ejecutaron las siguientes pruebas:
+
+| Prueba | Resultado |
+|---|---|
+| `test_p3_misma_semilla_mismas_predicciones_y_metrica` | PASSED |
+| `test_semilla_del_proyecto_es_entera` | PASSED |
+
+El resultado registrado fue:
+
+```text
+2 passed in 1.61s
+```
+
+Los resultados permiten comprobar la consistencia del entrenamiento controlado de KMeans bajo las condiciones establecidas.
+
+Es importante señalar que esta validación utiliza datos sintéticos y no representa una reproducción completa del pipeline de entrenamiento de MiBici ni de los experimentos registrados en MLflow.
+
+Por lo tanto, se considera una prueba automatizada de reproducibilidad de un componente del entrenamiento.
+
+#### 2.5. Evidencia de reproducibilidad
+
+**Evidencia 3. Ejecución de las pruebas de reproducibilidad de KMeans P3**
+
+La siguiente captura muestra la ejecución individual de las dos pruebas de reproducibilidad, ambas con resultados satisfactorios.
+
+![Pruebas de reproducibilidad de KMeans P3](docs/evidencias_semana7/03_pytest_reproducibilidad.jpeg)
+
+---
+
+### 3. Validación de datos con DeepChecks
+
+**Responsable:** Ivan Plata Garnica.
+
+**Estado:** Implementado y ejecutado para los pipelines P1, P2 y P3.
+
+#### 3.1. Objetivo
+
+Incorporar validaciones reproducibles de integridad y calidad de datos en los conjuntos utilizados por los modelos. Los chequeos ayudan a detectar esquemas incompletos, valores faltantes o inválidos, duplicados, tipos inconsistentes, posibles anomalías y cambios de distribución entre particiones, cuando aplica.
+
+#### 3.2. Implementación
+
+La lógica se encuentra en `mibici/modeling/data_validation.py` y se invoca desde los módulos de entrenamiento:
+
+- **P1 y P2:** `validate_panel_splits` valida los conjuntos de entrenamiento, validación y prueba con la suite `data_integrity`. Después compara entrenamiento con validación y entrenamiento con prueba mediante `train_test_validation`. Entre los chequeos de las suites están valores nulos, tipos mezclados, duplicados, muestras atípicas, cambios de distribución de características y del objetivo, y posibles fugas temporales entre particiones.
+- **P3:** `validate_station_profiles` aplica `data_integrity` por separado a los perfiles y a los metadatos de estaciones. Antes de ejecutar DeepChecks, el código rechaza perfiles vacíos o con identificadores de estación duplicados, metadatos vacíos o sin `station_id`, e identificadores faltantes o duplicados. P3 no compara conjuntos train/test porque este pipeline agrupa perfiles y no usa esas particiones.
+
+Para P1 y P2, la preparación del dataset también comprueba que cada partición no esté vacía, que incluya `station_id`, `target_time` y el objetivo correspondiente, que las claves estación-hora no tengan valores faltantes o fechas inválidas y que no haya filas duplicadas por estación y hora. Las variables categóricas conocidas se indican al construir el dataset de DeepChecks.
+
+Las dependencias específicas se fijan en `requirements-deepchecks.txt`: DeepChecks 0.19.1, NumPy 1.26.4 y Setuptools menor que 81, además de los requisitos del proyecto.
+
+Desde la raíz del repositorio y con el entorno `.venv311` de Python 3.11 preparado, instalar las dependencias de validación:
+
+```powershell
+.\.venv311\Scripts\python.exe -m pip install -r .\requirements-deepchecks.txt
+```
+
+Los datos procesados por la ingesta deben estar disponibles. Ejecutar cada pipeline por separado:
+
+```powershell
+.\.venv311\Scripts\python.exe -m mibici.modeling.train
+.\.venv311\Scripts\python.exe -m mibici.modeling.train_p2
+.\.venv311\Scripts\python.exe -m mibici.modeling.train_p3
+```
+
+Los reportes HTML se generan en `reports/deepchecks/`:
+
+| Pipeline | Reportes generados |
+|---|---|
+| P1 | `p1_train_integrity.html`, `p1_validation_integrity.html`, `p1_test_integrity.html`, `p1_train_vs_validation.html`, `p1_train_vs_test.html` |
+| P2 | `p2_train_integrity.html`, `p2_validation_integrity.html`, `p2_test_integrity.html`, `p2_train_vs_validation.html`, `p2_train_vs_test.html` |
+| P3 | `p3_profiles_integrity.html`, `p3_metadata_integrity.html` |
+
+En total, las ejecuciones documentadas generaron 12 reportes: cinco para P1, cinco para P2 y dos para P3.
+
+#### 3.3. Resultados de validación
+
+Los tres comandos terminaron correctamente y registraron sus ejecuciones en MLflow. Las suites de DeepChecks se ejecutaron y generaron los reportes indicados. Las métricas de la tabla siguiente pertenecen a los modelos; no son puntuaciones de DeepChecks.
+
+| Pipeline | Resultado del entrenamiento registrado |
+|---|---|
+| P1 | MAE de prueba: 1.4756 |
+| P2 | F1 de prueba: 0.0000 |
+| P3 | K=3; Silhouette: 0.4506; Calinski-Harabasz: 263.9313 |
+
+Que los pipelines hayan finalizado confirma que las suites se ejecutaron y generaron los informes; no significa que todas las condiciones hayan pasado. Al revisar los reportes generados el 4 de noviembre de 2026 se encontraron estos resultados:
+
+- **Comprobaciones comunes:** en los informes de integridad de P1, P2 y P3, los tipos de datos mezclados pasaron y el chequeo de duplicados reportó 0%. Las comparaciones temporales de P1 y P2 no detectaron fuga de fechas ni de índices; el chequeo de *feature drift* pasó para las 12 variables evaluadas. El chequeo **Mixed Nulls** pasó, lo que indica que no encontró una mezcla de representaciones de nulos; no equivale a afirmar que todas las columnas estén libres de valores faltantes.
+- **P1:** los informes de integridad señalaron como constantes **capacity** y **risk_threshold**, además de pares de variables con correlación mayor a 0.9. En la comparación train/validation, **Train Test Samples Mix** encontró 5.21% de muestras repetidas, por encima del umbral de 5%. En train/test, **Multivariate Drift** obtuvo 0.31, por encima del umbral de 0.25; el solapamiento de muestras fue 1.25%.
+- **P2:** se señalaron correlaciones mayores a 0.9 entre algunas variables, y **target_time** presentó Predictive Power Score de 0.04 frente al umbral de 0. En validación y prueba se reportaron etiquetas conflictivas en proporciones de 0.008% y 0.002%, respectivamente. El solapamiento train/validation fue 8.32%, por encima del umbral de 5%; train/test fue 4.41%. **Multivariate Drift** fue 0.30 en train/test (umbral 0.25) y 0.24 en train/validation.
+- **P3:** los informes señalaron columnas constantes: 18 de las 337 variables de perfiles, y **active** y **coords_valid** en los metadatos. También encontraron pares de variables de perfil con correlación superior a 0.9.
+
+Estas condiciones señaladas requieren interpretación en el contexto del proyecto. Algunas pueden corresponder a variables redundantes o patrones esperados (por ejemplo, columnas de conteos con valor cero en ciertos horarios), pero el reporte por sí solo no determina si deben conservarse. Por ello, el resultado documentado es una ejecución exitosa con observaciones identificadas para revisión, no una certificación de que el dataset esté completamente libre de problemas.
+
+Durante las ejecuciones también aparecieron advertencias de dependencias (incluida una advertencia deprecada de `DataFrame.applymap` en DeepChecks y, en P3, inferencia automática de variables categóricas y una advertencia numérica de correlación). No impidieron que los comandos terminaran ni que se guardaran los reportes.
+
+#### 3.4. Evidencias
+
+Las siguientes capturas muestran el comando de cada pipeline, la ejecución de las suites de DeepChecks y el mensaje final de registro exitoso.
+
+**Evidencia 4. Ejecución de DeepChecks para P1**
+
+![Ejecución de DeepChecks y registro del pipeline P1](docs/evidencias_semana7/04_deepchecks_p1.png)
+
+**Evidencia 5. Ejecución de DeepChecks para P2**
+
+![Ejecución de DeepChecks y registro del pipeline P2](docs/evidencias_semana7/05_deepchecks_p2.png)
+
+**Evidencia 6. Ejecución de DeepChecks para P3**
+
+![Ejecución de DeepChecks y registro del pipeline P3](docs/evidencias_semana7/06_deepchecks_p3.png)
+
+---
+
+### 4. Revisión de seguridad del repositorio
+
+**Responsable:** Mónica María Ramírez Mejía.
+
+**Estado:** Revisión ejecutada y documentada. Se registran hallazgos de Bandit y pip-audit, además de una observación pendiente en la regla de exclusión del entorno local.
+
+#### 4.1. Objetivo
+
+Revisar el manejo de credenciales y datos sensibles, las exclusiones del repositorio y las vulnerabilidades reportadas por herramientas de análisis estático y de dependencias.
+
+#### 4.2. Credenciales, datos sensibles y reglas de exclusión
+
+El archivo [.gitignore](.gitignore) excluye .env, los directorios venv/, .venv/ y env/, los datos locales, los archivos de MLflow y los modelos serializados. Se comprobó con:
+
+    git check-ignore -v .env mlflow.db mlruns data/raw/ejemplo.csv models/modelo.pkl
+    git check-ignore -v mlruns/ mlartifacts/
+
+| Elemento | Regla observada |
+|---|---|
+| .env | Excluido |
+| data/raw/ | Excluido |
+| mlruns/ y mlartifacts/ | Excluidos |
+| mlflow.db | Excluido |
+| Archivos .pkl | Excluidos |
+| Entornos venv/, .venv/ y env/ | Excluidos |
+
+**Observación:** la carpeta .venv311/ usada en esta copia no coincide con esas reglas y aparece sin seguimiento en Git. Debe agregarse una regla para excluirla antes de preparar cambios, o evitar incluirla al hacer git add.
+
+Las referencias de configuración se cargan localmente con load_dotenv() en mibici/config.py. El archivo [.env.example](.env.example) contiene la plantilla sin credenciales; la variable de ejecución observada es MLFLOW_TRACKING_URI. Cada integrante crea su .env local, el cual está excluido por Git.
+
+Las búsquedas indicadas no encontraron coincidencias de asignaciones con los patrones de credenciales en los tipos de archivo consultados; tampoco se encontró un .env versionado ni commits que lo hayan agregado:
+
+    git grep -n -i -E '(password|passwd|secret|api[_-]?key|token)\s*[:=]' -- '*.py' '*.md' '*.yaml' '*.toml' '*.json'
+    git ls-files -- .env
+    git log --all --oneline -- .env
+
+La búsqueda se limita a esos patrones y tipos de archivo; no constituye una garantía absoluta de ausencia de secretos.
+
+
+
+
+
+
+
+
+
+
+
+#### 4.3. Análisis estático con Bandit
+
+Se instalaron Bandit 1.9.4 y pip-audit 2.10.1:
+
+    python -m pip install bandit==1.9.4 pip-audit==2.10.1
+    python -m bandit --version
+    python -m pip_audit --version
+
+El análisis de 2,475 líneas de mibici/ registró **15 hallazgos de severidad baja**, sin hallazgos medios ni altos. Los 15 tienen confianza alta:
+
+| Código | Descripción | Cantidad |
+|---|---|---:|
+| B404 | Importación del módulo subprocess | 5 |
+| B603 | Llamadas a subprocess sin shell=True | 5 |
+| B607 | Uso del nombre del ejecutable (git) sin ruta absoluta | 5 |
+
+Los hallazgos están en experiment_p1.py, experiment_p2.py, train.py, train_p2.py y train_p3.py. Corresponden a llamadas con argumentos fijos para ejecutar git rev-parse HEAD y obtener el commit; no usan shell=True ni reciben argumentos del usuario. El equipo los clasifica como de bajo riesgo. El reporte completo está en [reports/security/bandit.txt](reports/security/bandit.txt).
+
+    python -m bandit -r mibici
+    python -m bandit -r mibici -f txt -o reports/security/bandit.txt
+
+
+
+
+
+#### 4.4. Auditoría de dependencias con pip-audit
+
+Se ejecutó la auditoría el 1 de noviembre de 2026:
+
+    python -m pip_audit -r requirements.txt --no-deps --disable-pip -o reports/security/pip_audit.txt
+
+El resumen de la herramienta reportó **53 vulnerabilidades conocidas en cuatro paquetes** de requirements.txt:
+
+| Paquete | Versión fijada | Vulnerabilidades |
+|---|---:|---:|
+| pyarrow | 22.0.0 | 2 |
+| requests | 2.32.5 | 2 |
+| python-dotenv | 1.2.1 | 2 |
+| mlflow | 3.6.0 | 47 |
+
+El comando usa --no-deps, por lo que la auditoría cubre los paquetes declarados directamente en requirements.txt, no sus dependencias indirectas. El detalle y las versiones que corrigen los avisos están en [reports/security/pip_audit.txt](reports/security/pip_audit.txt).
+
+Las dependencias vulnerables no se actualizaron como parte de esta revisión. En particular, actualizar MLflow puede afectar los experimentos y el registro de modelos; cualquier actualización debe validarse con una nueva ejecución del flujo correspondiente.
+
+
+
+#### 4.5. Evidencias
+
+Las capturas siguientes documentan la instalación de herramientas, las comprobaciones de credenciales y exclusiones, y las salidas de Bandit y pip-audit.
+
+**Evidencia 1. Herramientas instaladas**
+
+![Herramientas de seguridad instaladas](docs/evidencia/01_herramientas_instaladas.png)
+
+**Evidencia 2. Reglas de exclusión para archivos**
+
+![Verificación de reglas para archivos](docs/evidencia/02_gitignore_archivos.png)
+
+**Evidencia 3. Reglas de exclusión para carpetas**
+
+![Verificación de reglas para carpetas](docs/evidencia/03_gitignore_carpetas.png)
+
+**Evidencia 4. Variable de entorno**
+
+![Configuración mediante variable de entorno](docs/evidencia/04_variables_entorno.png)
+
+**Evidencia 5. Búsqueda de credenciales**
 
 ![Búsqueda de credenciales](docs/evidencia/05_secretos.png)
 
-### 2. Análisis de código con bandit
+**Evidencia 6. Resumen de Bandit**
+
+![Resumen de Bandit](docs/evidencia/06_bandit.png)
+
+**Evidencia 7. Detalle de los hallazgos de Bandit**
+
+![Detalle de hallazgos de Bandit](docs/evidencia/07_bandit_detalle.png)
+
+**Evidencia 8. Resultado de pip-audit**
+
+![Resumen de pip-audit](docs/evidencia/08_pip_audit.png)
+
+#### 4.6. Uso de IA
+
+Se usó Claude (Anthropic, 2026) como apoyo para estructurar y redactar esta sección. Los comandos y las capturas corresponden a la ejecución reportada por Mónica.
+
+---
+
+### 5. Organización y ejecución de las verificaciones
+
+#### 5.1. Estructura centralizada de pruebas
+
+Con la finalidad de facilitar la ejecución y mantenimiento de las pruebas, se estableció una estructura centralizada dentro de la carpeta `tests/`.
+
+La configuración de PyTest se encuentra en el archivo `pytest.ini`.
+
+Esta organización permite incorporar nuevas pruebas conforme evolucione el proyecto, manteniendo un procedimiento de ejecución consistente.
+
+#### 5.2. Comando general de ejecución
+
+Para ejecutar las pruebas automatizadas ubicadas en la carpeta `tests/`:
 
 ```powershell
-python -m bandit -r mibici
-python -m bandit -r mibici -f txt -o reports/security/bandit.txt
+python -m pytest tests/ -v
 ```
 
-Se revisaron 2475 líneas de código de `mibici/`. Resultado: **15 hallazgos, todos de severidad baja** (0 medios y 0 altos), de tres tipos y cinco de cada uno:
+La ejecución puede realizarse desde cualquier terminal que tenga acceso al proyecto y cuente con las dependencias necesarias.
 
-| Código | Descripción | Cantidad |
-|---|---|---|
-| B404 | Se importa el módulo `subprocess` | 5 |
-| B603 | `subprocess` llamado sin `shell=True` (revisar que no reciba entradas no confiables) | 5 |
-| B607 | Se ejecuta un programa por su nombre (`git`), no por ruta completa | 5 |
+#### 5.3. Ejecución individual de pruebas
 
-Están en cinco archivos de `mibici/modeling/`: `experiment_p1.py`, `experiment_p2.py`, `train.py`, `train_p2.py` y `train_p3.py`. En todos corresponden a la misma llamada, `subprocess.run` o `subprocess.check_output` con `["git", "rev-parse", "HEAD"]`, que obtiene el identificador del commit actual. Los argumentos son fijos, no se usa `shell=True` y no interviene ninguna entrada del usuario; en `experiment_p1.py` y `experiment_p2.py`, si la llamada falla, se devuelve `"unknown"`. Por eso se aceptan como riesgo bajo. El reporte completo está en `reports/security/bandit.txt`.
+También pueden ejecutarse las pruebas de forma independiente:
 
-![Resultado de bandit](docs/evidencia/06_bandit.png)
-
-### 3. Dependencias con pip-audit
+**Preparación de datos**
 
 ```powershell
-python -m pip_audit -r requirements.txt --no-deps --disable-pip -o reports/security/pip_audit.txt
+python -m pytest tests/test_dataset.py -v
 ```
 
-Resultado (1 de noviembre de 2026): **53 vulnerabilidades conocidas en 4 paquetes** de `requirements.txt`:
+**Ingeniería de características**
 
-| Paquete | Versión fijada | Vulnerabilidades |
-|---|---|---|
-| `pyarrow` | 22.0.0 | 2 |
-| `requests` | 2.32.5 | 2 |
-| `python-dotenv` | 1.2.1 | 2 |
-| `mlflow` | 3.6.0 | 47 |
+```powershell
+python -m pytest tests/test_features.py -v
+```
 
-El detalle de cada una, con la versión que la corrige, está en `reports/security/pip_audit.txt`. La revisión se hizo con `--no-deps`, es decir, solo sobre los paquetes listados en `requirements.txt`, sin sus dependencias indirectas.
+**Reproducibilidad**
 
-Riesgo conocido: las versiones fijadas en el proyecto tienen vulnerabilidades reportadas, sobre todo en `mlflow`. Actualizarlas puede cambiar los resultados de los experimentos, por lo que debe hacerse validando de nuevo el entrenamiento y el registro de modelos antes de modificar `requirements.txt`.
+```powershell
+python -m pytest tests/test_reproducibility.py -v
+```
 
-![Resultado de pip-audit](docs/evidencia/08_pip_audit.png)
+**Particiones temporales**
 
-### Uso de IA
+```powershell
+python -m pytest tests/test_splits.py -v
+```
 
-Se usó Claude (Anthropic, 2026) como apoyo para estructurar y redactar esta sección. Los comandos y las capturas son de mi propia ejecución.
+Las verificaciones de seguridad mediante herramientas externas deberán documentarse adicionalmente, ya que no forman parte automáticamente de la ejecución de PyTest.
+
+---
+
+### 6. Trabajo colaborativo y control de versiones
+
+El trabajo de la Semana 7 se desarrolla mediante ramas independientes, permitiendo que cada integrante incorpore sus aportaciones sin modificar directamente el trabajo de los demás.
+
+Esta metodología facilita la revisión de cambios, la identificación de responsables y la integración de nuevas funcionalidades mediante Pull Requests.
+
+#### 6.1. Contribución de Axel Fernando Rábago Díaz
+
+**Rama de trabajo:**
+
+`feature/semana7-pytest-axel`
+
+**Commit local registrado:**
+
+`35c39a8`
+
+**Descripción del commit:**
+
+```text
+test: agrega 21 pruebas unitarias y reproducibilidad MiBici
+```
+
+Se incorporaron cinco archivos nuevos y 286 líneas de código, correspondientes a cuatro módulos de pruebas y la configuración de PyTest.
+
+Los cambios fueron validados localmente mediante la ejecución satisfactoria de las 21 pruebas.
+
+La integración definitiva de esta contribución al repositorio central deberá verificarse mediante GitHub y su correspondiente Pull Request.
+
+#### 6.2. Contribuciones de Ivan Plata Garnica y Monica Maria Ramirez Mejia
+
+**Ivan Plata Garnica — validación de datos con DeepChecks**
+
+- Rama: feature/semana7-deepchecks-iniciales.
+- Pull Request #9, integrado a main.
+- La implementación valida P1, P2 y P3; los comandos, resultados y capturas se documentan en la sección 3.
+
+**Monica Maria Ramirez Mejia — chequeos de seguridad**
+
+- Ejecutó y documentó las revisiones de .gitignore, variables de entorno y búsqueda de credenciales.
+- Ejecutó Bandit y pip-audit; los resultados, reportes y capturas se encuentran en la sección 4.
+- La revisión detectó vulnerabilidades de dependencias y que .venv311/ no está cubierta por las reglas actuales de .gitignore. La documentación deja registradas ambas observaciones para su seguimiento.
+
+#### 6.3. Repositorio del proyecto
+
+Repositorio central del Equipo 46:
+
+https://github.com/iplatamx/TC5061-Proyecto-Equipo46
+
+La rama principal y versión consolidada del repositorio es main; las contribuciones se integran en esa rama mediante Pull Requests.
+
+---
+
+### 7. Conclusiones de la Semana 7
+
+Las pruebas automatizadas implementadas permiten fortalecer la confiabilidad del proyecto MiBici, al comprobar el comportamiento de funciones importantes utilizadas durante la preparación y transformación de datos.
+
+La ejecución satisfactoria de 21 pruebas demuestra que los escenarios evaluados producen los resultados esperados bajo las condiciones establecidas. Asimismo, la prueba de reproducibilidad de KMeans aporta evidencia sobre la consistencia de un entrenamiento controlado.
+
+Uno de los aprendizajes más importantes de esta actividad es comprender que desarrollar un modelo de Machine Learning no termina cuando conseguimos buenas métricas de desempeño. También es necesario demostrar que los procesos utilizados para obtener esos resultados son verificables y pueden ejecutarse de manera consistente.
+
+Consideramos que la incorporación de pruebas automatizadas representa un avance importante en la aplicación de MLOps, ya que permite identificar errores de manera anticipada y reducir el riesgo de introducir modificaciones que afecten componentes existentes.
+
+Finalmente, la organización de las pruebas y su documentación facilita que los integrantes del equipo puedan ejecutar nuevamente las verificaciones, revisar los resultados y continuar incorporando controles de calidad conforme evolucione el proyecto.
+
+Los resultados de DeepChecks y de los chequeos de seguridad se documentan en las secciones 3 y 4, junto con los comandos, hallazgos y evidencias disponibles.
+
+---
+
+### 8. Referencias
+
+Bandit. (s. f.). *Bandit documentation*. https://bandit.readthedocs.io/en/latest/
+
+DeepChecks. (s. f.). *DeepChecks documentation*. https://docs.deepchecks.com/
+
+pip-audit. (s. f.). *pip-audit*. Python Package Index. https://pypi.org/project/pip-audit/
+
+pytest development team. (s. f.). *pytest documentation*. https://docs.pytest.org/en/stable/
+
+OWASP Foundation. (s. f.). *Machine learning security top ten*. https://owasp.org/www-project-machine-learning-security-top-10/
