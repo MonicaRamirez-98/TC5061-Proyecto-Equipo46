@@ -11,3 +11,7 @@ matplotlib==3.10.7
 SQLAlchemy==2.0.55
 numpy==1.26.4
 deepchecks==0.19.1
+fastapi==0.118.0
+uvicorn==0.37.0
+pydantic==2.11.9
+httpx==0.28.1
