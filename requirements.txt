@@ -9,3 +9,5 @@ scikit-learn==1.7.2
 mlflow==3.6.0
 matplotlib==3.10.7
 SQLAlchemy==2.0.55
+numpy==1.26.4
+deepchecks==0.19.1
