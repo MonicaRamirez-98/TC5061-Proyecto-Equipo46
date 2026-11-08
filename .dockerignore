@@ -1,0 +1,11 @@
+.git/
+.venv/
+.venv311/
+mlflow.db
+mlruns/
+mlartifacts/
+data/raw/
+data/processed/
+notebooks/
+reports/
+docs/

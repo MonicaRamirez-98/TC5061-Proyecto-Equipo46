@@ -1104,3 +1104,210 @@ pip-audit. (s. f.). *pip-audit*. Python Package Index. https://pypi.org/project/
 pytest development team. (s. f.). *pytest documentation*. https://docs.pytest.org/en/stable/
 
 OWASP Foundation. (s. f.). *Machine learning security top ten*. https://owasp.org/www-project-machine-learning-security-top-10/
+
+---
+
+## Semana 8 — API REST con FastAPI en contenedor
+
+| Campo | Valor |
+|---|---|
+| Proyecto | MiBici — Equipo 46 |
+| Materia | Operaciones de Aprendizaje Automático |
+| Institución | Tecnológico de Monterrey |
+| Actividad | Empaquetar modelo del proyecto como API REST en contenedor |
+| Modalidad | Colaborativa |
+
+---
+
+### Objetivo
+
+Convertir el modelo P1 (predicción de viajes que iniciarán en una estación durante la hora siguiente) en un servicio consumible mediante peticiones HTTP, empaquetado en un contenedor que funciona igual en cualquier computadora con Docker o Podman.
+
+### 1. Recuperación del modelo desde el Model Registry
+
+**Responsable:** Axel Fernando Rábago Díaz. Detalle en [docs/Semana8_Axel_ModelRegistry.md](docs/Semana8_Axel_ModelRegistry.md).
+
+**Opción elegida: el contenedor consulta el Model Registry al iniciar.** El modelo no se empaqueta en la imagen. La ubicación del registro se configura con la variable `MLFLOW_TRACKING_URI` y el modelo se recupera por nombre y alias:
+
+| Variable | Valor predeterminado | Descripción |
+|---|---|---|
+| `MLFLOW_TRACKING_URI` | `http://host.docker.internal:5000` | Servidor de MLflow que corre en la computadora anfitriona |
+| `MIBICI_MODEL_NAME` | `mibici-equipo46-p1-demanda` | Nombre del modelo registrado |
+| `MIBICI_MODEL_ALIAS` | `champion` | Alias que se carga |
+| `MIBICI_MODEL_VERSION` | *(vacío)* | Versión fija opcional; si se define, tiene prioridad sobre el alias |
+
+Con esta opción, promover un modelo nuevo solo requiere mover el alias `champion` en MLflow y reiniciar el contenedor; no es necesario reconstruir la imagen.
+
+**Requisito previo:** el modelo debe estar registrado en el MLflow local. Si no lo está, desde la raíz del repositorio y con el servidor de MLflow activo:
+
+```powershell
+$env:MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
+mlflow run . -e ingest --env-manager local --experiment-name mibici-equipo46
+mlflow run . -e search_p1 --env-manager local --experiment-name mibici-equipo46
+python -m mibici.serving.register_p1
+```
+
+### 2. API REST y validación de entradas
+
+**Responsable:** Mónica María Ramírez Mejía. Detalle en [docs/Semana8_API_FastAPI.md](docs/Semana8_API_FastAPI.md).
+
+| Método y ruta | Función |
+|---|---|
+| `GET /health` | Estado del servicio; `200` si el modelo está cargado, `503` si no |
+| `GET /model-info` | Nombre, versión y variables del modelo en uso |
+| `POST /predict` | Predicción para una estación |
+| `POST /predict/batch` | Predicción para 1 a 1000 estaciones en una sola petición |
+| `GET /docs` | Documentación interactiva generada por FastAPI |
+
+Los esquemas de entrada y salida se definen con Pydantic en `api/schemas.py`. Una entrada inválida (campo faltante, campo adicional, tipo incorrecto o valor fuera de rango) recibe `422` sin llegar al modelo.
+
+### 3. Containerfile
+
+El archivo `Containerfile` (compatible con el estándar OCI) construye la imagen en este orden:
+
+1. Parte de `python:3.11-slim`. La versión de Python queda fijada en la imagen, independientemente de la que tenga instalada cada computadora.
+2. Instala las dependencias de `requirements.txt`.
+3. Copia el código del proyecto (`mibici/`) y de la API (`api/`).
+4. Define las variables de la sección 1 y arranca la API con Uvicorn en el puerto 8000.
+
+El archivo `.dockerignore` excluye de la imagen los entornos virtuales, los datos, la base de MLflow y la documentación.
+
+### 4. Construir la imagen
+
+Desde la raíz del repositorio, con Docker Desktop encendido:
+
+```powershell
+docker build -t mibici-api:1.0 -f Containerfile .
+```
+
+La primera construcción tarda varios minutos porque instala las dependencias. Al terminar, `docker images` muestra la imagen `mibici-api:1.0`.
+
+### 5. Levantar MLflow para el contenedor
+
+El contenedor se conecta al servidor de MLflow de la computadora anfitriona. MLflow 3.6 solo acepta conexiones locales de forma predeterminada, por lo que debe iniciarse escuchando en todas las interfaces y aceptando el nombre `host.docker.internal`. En una terminal aparte, desde la raíz del repositorio:
+
+```powershell
+mlflow server --backend-store-uri sqlite:///mlflow.db --host 0.0.0.0 --port 5000 --workers 1 --allowed-hosts "localhost,localhost:5000,127.0.0.1,127.0.0.1:5000,host.docker.internal,host.docker.internal:5000"
+```
+
+La terminal debe mostrar `Uvicorn running on http://0.0.0.0:5000`. Si Windows solicita permiso del firewall para Python, se debe permitir; de lo contrario el contenedor no puede alcanzar el servidor. Mientras esté activo así, el servidor es accesible desde la red local, por lo que conviene detenerlo (`Ctrl+C`) al terminar y no usarlo en redes públicas.
+
+### 6. Levantar el contenedor
+
+```powershell
+docker run -d --name mibici-api -p 8000:8000 mibici-api:1.0
+docker logs -f mibici-api
+```
+
+Los registros deben mostrar:
+
+```text
+Modelo listo: mibici-equipo46-p1-demanda v1 (models:/mibici-equipo46-p1-demanda/1)
+Uvicorn running on http://0.0.0.0:8000
+```
+
+Si en su lugar aparece `No se pudo cargar el modelo`, el resto del mensaje indica la causa:
+
+| Mensaje | Causa probable |
+|---|---|
+| `Connection refused` o `Max retries exceeded` | MLflow no se inició con `--host 0.0.0.0` o el firewall bloquea la conexión |
+| `403` o `Invalid Host header` | Falta `host.docker.internal` en `--allowed-hosts` |
+| `RESOURCE_DOES_NOT_EXIST` | El modelo o el alias no están registrados (ver requisito previo de la sección 1) |
+
+**Con Podman** los comandos son equivalentes, cambiando `docker` por `podman`. La computadora anfitriona se identifica como `host.containers.internal`, por lo que se agrega ese nombre a `--allowed-hosts` y se indica al iniciar el contenedor:
+
+```powershell
+podman build -t mibici-api:1.0 -f Containerfile .
+podman run -d --name mibici-api -p 8000:8000 -e MLFLOW_TRACKING_URI=http://host.containers.internal:5000 mibici-api:1.0
+```
+
+### 7. Consumir la API
+
+Documentación interactiva: <http://127.0.0.1:8000/docs>
+
+Petición desde PowerShell:
+
+```powershell
+$body = @{
+  station_id = 1; departures_this_hour = 5; arrivals_this_hour = 4
+  departures_mean_last_24h = 3.5; departures_mean_last_168h = 4.2
+  target_hour = 9; target_dayofweek = 1; target_is_weekend = 0
+} | ConvertTo-Json
+Invoke-RestMethod -Uri http://127.0.0.1:8000/predict -Method Post -Body $body -ContentType "application/json"
+```
+
+Cuerpo de la petición (`POST /predict`):
+
+```json
+{
+  "station_id": 1,
+  "departures_this_hour": 5,
+  "arrivals_this_hour": 4,
+  "departures_mean_last_24h": 3.5,
+  "departures_mean_last_168h": 4.2,
+  "target_hour": 9,
+  "target_dayofweek": 1,
+  "target_is_weekend": 0
+}
+```
+
+Respuesta obtenida desde el contenedor (`200`):
+
+```json
+{
+  "station_id": 1,
+  "predicted_departures_next_hour": 3.9233,
+  "model_name": "mibici-equipo46-p1-demanda",
+  "model_version": "1"
+}
+```
+
+La predicción coincide con la obtenida al ejecutar la API fuera del contenedor y con la verificación directa del modelo (`python -m mibici.serving.verify_model`), lo que confirma que la imagen reproduce el mismo resultado.
+
+### 8. Detener el servicio
+
+```powershell
+docker stop mibici-api
+docker rm mibici-api
+```
+
+Después, detener el servidor de MLflow con `Ctrl+C`.
+
+### 9. Estrategia de despliegue
+
+Se eligió **inferencia en tiempo real mediante una API REST**:
+
+- P1 predice la demanda de la **hora siguiente**; la predicción pierde valor rápidamente, por lo que conviene calcularla en el momento con el estado más reciente de la estación.
+- El modelo (HistGradientBoostingRegressor con ocho variables numéricas) se carga una sola vez al iniciar el contenedor y cada petición solo ejecuta una predicción en memoria, por lo que no se requiere un proceso por lotes para atender consultas individuales.
+- Un endpoint HTTP puede ser consumido por cualquier sistema (por ejemplo, un tablero de operación o un proceso de rebalanceo) sin depender de Python.
+- El endpoint `/predict/batch` permite calcular varias estaciones en una sola petición, por ejemplo al inicio de cada hora, con la misma imagen.
+
+**Limitaciones:** la API recibe las variables ya calculadas (promedios de 24 y 168 horas); su cálculo a partir de los viajes en tiempo real queda fuera del alcance de esta entrega. El contenedor requiere acceso al servidor de MLflow con el modelo registrado.
+
+### 10. Evidencias
+
+**Evidencia 1. Construcción de la imagen**
+
+![Construcción de la imagen con docker build](docs/evidencias_semana8/05_docker_build.png)
+
+**Evidencia 2. Contenedor en ejecución con el modelo cargado desde el Model Registry**
+
+![Registros del contenedor](docs/evidencias_semana8/06_docker_logs.png)
+
+**Evidencia 3. Peticiones atendidas por el contenedor**
+
+![Peticiones con respuesta 200](docs/evidencias_semana8/06_1_docker_peticiones.png)
+
+**Evidencia 4. Predicción desde el contenedor**
+
+![POST /predict con respuesta 200 desde el contenedor](docs/evidencias_semana8/07_contenedor_predict.png)
+
+Las evidencias de la API fuera del contenedor (pruebas, `/health`, `/predict` y validación `422`) se encuentran en [docs/Semana8_API_FastAPI.md](docs/Semana8_API_FastAPI.md).
+
+### 11. Trabajo colaborativo
+
+| Parte | Responsable | Rama | Pull Request |
+|---|---|---|---|
+| Recuperación del modelo desde el Model Registry | Axel Fernando Rábago Díaz | `feature/semana8-mlflow-axel` | #12, integrado a `main` |
+| API REST con FastAPI y validación con Pydantic | Mónica María Ramírez Mejía | `feature/semana8-api-fastapi` | #13, integrado a `main` |
+| Containerfile, contenedor y documentación | Mónica María Ramírez Mejía | `feature/semana8-contenedor` | Pull Request de esta rama |
