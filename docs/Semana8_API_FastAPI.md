@@ -88,7 +88,7 @@ Terminal 1, servidor de MLflow (dejarla abierta):
 mlflow server --backend-store-uri sqlite:///mlflow.db --host 127.0.0.1 --port 5000 --workers 1
 ```
 
-Terminal 2, generar y registrar el modelo P1 desde un clon limpio:
+Terminal 2, generar y registrar el modelo P1 (desde la raíz del repositorio, con un MLflow sin registros previos):
 
 ```powershell
 .venv311\Scripts\activate
