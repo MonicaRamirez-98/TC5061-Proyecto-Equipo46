@@ -39,7 +39,7 @@ RANDOM_SEED = 42
 MIBICI_PAGE_URL = "https://mibici.net/es/datos-abiertos/"
 MIBICI_FILES_BASE = "https://mibici.net/site/assets/files/1118/"
 TRIPS_FILE_TEMPLATE = "datos_abiertos_{year}_{month:02d}.csv"
-STATIONS_FILE = "nomenclatura_2026_09.csv"
+STATIONS_FILE = "nomenclatura_2026_10.csv"
 
 # --- MLflow -----------------------------------------------------------------
 MLFLOW_EXPERIMENT_NAME = "mibici-equipo46"  # experimento del equipo en MLflow
