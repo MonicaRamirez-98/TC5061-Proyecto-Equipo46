@@ -1109,57 +1109,101 @@ OWASP Foundation. (s. f.). *Machine learning security top ten*. https://owasp.or
 
 ## Semana 8 — API de predicción MiBici en contenedor
 
-Esta sección documenta los puntos 1–6 de la actividad integradora. El servicio expone el modelo P1 de demanda mediante FastAPI y lo ejecuta en una imagen OCI construida con Docker usando el archivo `Containerfile`.
+Esta sección integra los pasos 1–6 de la actividad. Las guías técnicas completas siguen disponibles en [`Semana8_Axel_ModelRegistry.md`](docs/Semana8_Axel_ModelRegistry.md) y [`Semana8_API_FastAPI.md`](docs/Semana8_API_FastAPI.md). Según el objetivo que declara cada guía, la primera cubre el **punto 1** y la segunda cubre los **puntos 2 y 3**.
 
 ### 1. Recuperar el modelo desde MLflow Model Registry
 
-La API recupera el modelo registrado `mibici-equipo46-p1-demanda` con el alias `champion` (P1-HGB-02, `HistGradientBoostingRegressor`). La referencia del Registry es `models:/mibici-equipo46-p1-demanda@champion`. Al iniciar FastAPI, `MiBiciModelService` resuelve el alias a una versión concreta y carga el modelo una sola vez con MLflow; las solicitudes reutilizan el modelo en memoria. Para tomar una versión nueva asignada al alias, se reinicia el contenedor. La integración se detalla en [Semana8_API_FastAPI.md](docs/Semana8_API_FastAPI.md).
+La API usa el modelo P1 registrado como `mibici-equipo46-p1-demanda`, alias `champion`, candidato P1-HGB-02 (`HistGradientBoostingRegressor`). La referencia es `models:/mibici-equipo46-p1-demanda@champion`. Se conserva el modelo entrenado y sus métricas; no hace falta reentrenarlo cuando el alias y sus artefactos están disponibles. La versión validada fue la 1, con MAE de validación 0.735193 y versión de datos `129a4a57efc7`.
 
-La base SQLite del Registry y sus artefactos locales no se versionan en Git. Se debe iniciar MLflow contra la misma base y almacenamiento que contienen el alias y los artefactos; una base nueva y vacía no encontrará el modelo. Si `champion` ya existe y los artefactos están disponibles, no hace falta reentrenar.
+`MiBiciModelService` usa `mlflow.pyfunc.load_model`, resuelve el alias al iniciar y mantiene la versión resuelta durante la vida del proceso. No consulta MLflow en cada petición. Las ocho variables se ordenan según el contrato P1 y se convierten a `float32`, como en el entrenamiento. La salida se limita a valores no negativos.
 
-Si el alias no existe y los datos procesados están disponibles, reproduce las búsquedas P1, P2 y P3 y registra los modelos. El script `mibici.modeling.registry` selecciona y registra las tres preguntas, por lo que necesita candidatos válidos para las tres:
+El servicio lee estas variables de entorno:
+
+| Variable | Uso |
+|---|---|
+| `MLFLOW_TRACKING_URI` | Servidor de tracking y Registry; por defecto `http://127.0.0.1:5000` fuera del contenedor. |
+| `MLFLOW_REGISTRY_URI` | URI del Registry si es diferente; opcional, por defecto usa `MLFLOW_TRACKING_URI`. |
+| `MIBICI_MODEL_NAME` | Nombre del modelo; por defecto `mibici-equipo46-p1-demanda`. |
+| `MIBICI_MODEL_ALIAS` | Alias que se resolverá; por defecto `champion`. |
+| `MIBICI_MODEL_VERSION` | Versión específica opcional; si se define, permite fijar una versión en vez del alias. |
+
+La base SQLite del Registry y los artefactos locales no se versionan en Git. Clonar el repositorio no basta: MLflow debe apuntar al Registry que tiene el modelo y el runtime debe poder leer sus artefactos. No se agregan temperatura ni fechas en texto al contrato; las medias de salidas de 24 y 168 horas se calculan previamente con el historial de la estación.
+
+Para comprobar un modelo ya registrado:
 
 ```powershell
 $env:MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
-python -m mibici.dataset --verify
-mlflow run . -e search_p1 --env-manager local --experiment-name mibici-equipo46
-mlflow run . -e search_p2 --env-manager local --experiment-name mibici-equipo46
-mlflow run . -e search_p3 --env-manager local --experiment-name mibici-equipo46
-python -m mibici.modeling.registry
+python -m mibici.serving.verify_model
 ```
 
-Si los archivos procesados todavía no existen, ejecuta antes la ingesta indicada en [Experimentación avanzada y Model Registry](#experimentación-avanzada-y-model-registry--semana-6).
+Si el alias todavía no existe y se parte de un entorno limpio, reproduce la ingesta y la búsqueda P1, y registra solo el candidato de P1 para este servicio:
+
+```powershell
+$env:MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
+mlflow run . -e ingest --env-manager local --experiment-name mibici-equipo46
+mlflow run . -e search_p1 --env-manager local --experiment-name mibici-equipo46
+python -m mibici.serving.register_p1
+python -m mibici.serving.verify_model
+```
+
+La comprobación real recuperó el modelo desde el Registry y produjo `3.9233` para el ejemplo de prueba. La guía de Axel detalla el registro, el contrato compartido y los requisitos de los artefactos.
 
 ### 2. API REST con FastAPI
 
-La aplicación se inicia con Uvicorn y ofrece estos endpoints:
+La API de `api/main.py` usa `MiBiciModelService` y crea el servicio una sola vez durante el `lifespan` de FastAPI. Si MLflow no está disponible al arrancar, la aplicación queda activa en estado degradado para facilitar el diagnóstico: `/health` y los endpoints de predicción responden `503`; el motivo detallado queda en los logs. Los errores internos se devuelven con un mensaje genérico `500`, sin exponer detalles sensibles.
 
 | Método | Ruta | Uso |
 |---|---|---|
-| GET | `/health` | Estado del servicio; responde 200 si el modelo se cargó y 503 si no está disponible. |
+| GET | `/health` | `200` si el modelo cargó; `503` si no está disponible. |
 | GET | `/model-info` | Nombre, versión, URI y variables del modelo cargado. |
 | POST | `/predict` | Predicción para una estación. |
-| POST | `/predict/batch` | Predicciones para entre 1 y 1000 estaciones. |
-| GET | `/docs` | Documentación interactiva de Swagger UI. |
+| POST | `/predict/batch` | Predicciones para 1 a 1000 estaciones en una petición. |
+| GET | `/docs` | Documentación interactiva Swagger UI. |
 
-### 3. Esquemas y validación de entradas
+Los endpoints y su implementación se describen en [`Semana8_API_FastAPI.md`](docs/Semana8_API_FastAPI.md).
 
-`PredictionInput` valida las ocho variables del contrato de P1 antes de llamar al modelo. Rechaza campos desconocidos, tipos de texto o booleanos donde se esperan números, valores fuera de rango y un indicador de fin de semana que no coincida con el día.
+### 3. Esquemas y validación de entradas y salidas
+
+`api/schemas.py` define `PredictionInput` y `PredictionOutput`. La API valida las ocho variables del contrato del modelo antes de invocar la inferencia:
 
 | Campo | Tipo | Restricción |
 |---|---|---|
 | `station_id` | entero | mayor que 0 |
-| `departures_this_hour` | entero | mayor o igual a 0 |
-| `arrivals_this_hour` | entero | mayor o igual a 0 |
-| `departures_mean_last_24h` | decimal | mayor o igual a 0; finito |
-| `departures_mean_last_168h` | decimal | mayor o igual a 0; finito |
+| `departures_this_hour` | entero | mayor o igual que 0 |
+| `arrivals_this_hour` | entero | mayor o igual que 0 |
+| `departures_mean_last_24h` | número | mayor o igual que 0; finito |
+| `departures_mean_last_168h` | número | mayor o igual que 0; finito |
 | `target_hour` | entero | de 0 a 23 |
 | `target_dayofweek` | entero | de 0 a 6; lunes es 0 |
-| `target_is_weekend` | entero | 0 o 1; debe ser 1 cuando el día sea sábado o domingo |
+| `target_is_weekend` | entero | 0 o 1 y consistente con el día (sábado/domingo) |
 
-Las peticiones inválidas reciben HTTP 422. La respuesta de predicción incluye el identificador de estación, la demanda estimada no negativa, el nombre del modelo y su versión. El contrato de variables se documenta en [Semana8_Axel_ModelRegistry.md](docs/Semana8_Axel_ModelRegistry.md); los endpoints y esquemas Pydantic están detallados en [Semana8_API_FastAPI.md](docs/Semana8_API_FastAPI.md).
+Pydantic usa `strict=True` para no convertir texto (`"5"`) ni booleanos en números, y `extra="forbid"` para rechazar campos desconocidos. Un entero sí puede recibirse en las variables decimales. Las entradas inválidas responden `422` antes de llegar al modelo.
 
-### Construir la imagen
+La respuesta contiene `station_id`, `predicted_departures_next_hour`, `model_name` y `model_version`. La predicción es no negativa y la versión permite rastrear qué modelo atendió la petición. Ejemplo:
+
+```json
+{
+  "station_id": 1,
+  "predicted_departures_next_hour": 3.9233,
+  "model_name": "mibici-equipo46-p1-demanda",
+  "model_version": "1"
+}
+```
+
+Las pruebas de `tests/test_api.py` se ejecutan sin MLflow y reportaron 15 aprobadas con Python 3.11. Para repetirlas en ese entorno:
+
+```powershell
+py -3.11 -m pip install pytest
+py -3.11 -m pytest tests/test_api.py -v
+```
+
+La guía de FastAPI contiene el procedimiento de prueba local y las capturas de `200`, `422` y la carga del modelo real. La guía de Axel especifica la correspondencia con el contrato de las ocho variables.
+
+### 4. Containerfile compatible con OCI
+
+El archivo `Containerfile` está en la raíz del repositorio. Usa `python:3.11-slim-bookworm`, instala las dependencias fijadas en `requirements.txt` y `libgomp1` para scikit-learn, copia `api/` y `mibici/`, ejecuta como usuario sin privilegios y arranca Uvicorn en el puerto 8000.
+
+### 5. Construir y probar el contenedor
 
 Con Docker Desktop activo, desde la raíz del repositorio:
 
@@ -1167,63 +1211,41 @@ Con Docker Desktop activo, desde la raíz del repositorio:
 docker build -t mibici-equipo46-api:semana8 -f Containerfile .
 ```
 
-El Containerfile instala las dependencias fijadas en `requirements.txt`, incluye el runtime de OpenMP requerido por scikit-learn y arranca Uvicorn en el puerto 8000.
-
-### Preparar MLflow para Docker
-
-El contenedor usa `http://host.containers.internal:5000` como `MLFLOW_TRACKING_URI`. Inicia el servidor en el directorio de la base del Registry, contra la misma base y raíz de artefactos donde se registró el modelo. Sustituye las rutas de ejemplo por las de ese equipo:
+El contenedor se conecta al mismo Registry y directorio de artefactos que contienen el alias `champion`. Inicia MLflow contra la base y la raíz de artefactos reales del equipo; las rutas siguientes son ejemplos y se deben ajustar:
 
 ```powershell
 $registryDb = "sqlite:///C:/RUTA/AL/REGISTRY/mlflow.db"
 $artifactRoot = "file:///C:/RUTA/AL/ARTEFACTOS/mlruns"
 $allowedHosts = "localhost,localhost:5000,127.0.0.1,127.0.0.1:5000,host.containers.internal,host.containers.internal:5000"
 
-mlflow server --backend-store-uri $registryDb --default-artifact-root $artifactRoot --no-serve-artifacts --host 127.0.0.1 --port 5000 --workers 1 --allowed-hosts $allowedHosts
+mlflow server --backend-store-uri $registryDb --default-artifact-root $artifactRoot --no-serve-artifacts --host 0.0.0.0 --port 5000 --workers 1 --allowed-hosts $allowedHosts
 ```
 
-En esta configuración académica, los artefactos están en un directorio local y el servidor se ejecuta sin proxy de artefactos (`--no-serve-artifacts`). Por eso, además de la URI del Registry, Docker necesita un bind mount del directorio `models` de MLflow en la misma ruta absoluta que registra el URI del artefacto. En Windows, una URI `file:///C:/...` corresponde dentro del contenedor Linux a una ruta `/C:/...`. El siguiente ejemplo usa la ruta de esta ejecución; ajústala a la ubicación real que devuelve MLflow en otro equipo:
+Para este despliegue local se monta el directorio `models` que corresponde a la URI de artefactos del Registry. En Windows, una URI `file:///C:/...` se ve dentro del contenedor como `/C:/...`. Ajusta la ruta a la ubicación real:
 
 ```powershell
 $modelsHost = "C:/IVAN/MNA/TC5061/semana-07/mlruns/2/models"
 $modelsTarget = "/C:/IVAN/MNA/TC5061/semana-07/mlruns/2/models"
+
+docker run --detach --rm --name mibici-equipo46-api `
+  --publish 8000:8000 `
+  --add-host host.containers.internal:host-gateway `
+  --mount "type=bind,source=$modelsHost,target=$modelsTarget" `
+  mibici-equipo46-api:semana8
 ```
 
-El montaje se deja con escritura porque MLflow crea el archivo `registered_model_meta` al resolver el modelo registrado.
+Comprueba el estado, consulta los logs y detén el servicio con `docker logs mibici-equipo46-api` y `docker stop mibici-equipo46-api`. El modelo y sus artefactos siguen fuera de la imagen; para moverla a otro equipo se debe proporcionar allí un Registry y artefactos accesibles o elegir y documentar otra estrategia.
 
-### Levantar el contenedor
+### 6. Documentar y consumir el servicio
 
-Docker Desktop no define siempre el alias `host.containers.internal` de Podman; se añade el mapeo al gateway del anfitrión al ejecutar:
-
-```powershell
-$runArgs = @(
-  "run", "--detach", "--rm", "--name", "mibici-equipo46-api",
-  "--publish", "8000:8000",
-  "--add-host", "host.containers.internal:host-gateway",
-  "--mount", "type=bind,source=$modelsHost,target=$modelsTarget",
-  "mibici-equipo46-api:semana8"
-)
-docker @runArgs
-```
-
-Consulta los logs y detén el servicio con:
-
-```powershell
-docker logs mibici-equipo46-api
-docker stop mibici-equipo46-api
-```
-
-Mantén disponible el servidor MLflow y el directorio de artefactos mientras el contenedor esté en uso. Esta configuración monta los artefactos del host; para mover la imagen a otra máquina hay que proporcionar allí su propio Registry y artefactos accesibles, o preparar otra estrategia de empaquetado.
-
-### Consumir y comprobar la API
-
-La aplicación queda disponible en `http://localhost:8000`. Primero comprueba que el modelo se cargó:
+La API queda disponible en `http://localhost:8000`. Comprueba el estado y la información del modelo:
 
 ```powershell
 Invoke-RestMethod http://localhost:8000/health
 Invoke-RestMethod http://localhost:8000/model-info
 ```
 
-Ejemplo de petición válida a `POST /predict`:
+Ejemplo de petición a `POST /predict`:
 
 ```powershell
 $body = @{
@@ -1240,19 +1262,6 @@ $body = @{
 Invoke-RestMethod -Uri http://localhost:8000/predict -Method Post -Body $body -ContentType "application/json"
 ```
 
-Respuesta observada con P1, versión 1:
+La respuesta observada fue la mostrada en el punto 3 (`3.9233`, modelo `mibici-equipo46-p1-demanda`, versión `1`). Si se cambia `target_hour` a 24, la API rechaza la petición con `422`.
 
-```json
-{
-  "station_id": 1,
-  "predicted_departures_next_hour": 3.9233,
-  "model_name": "mibici-equipo46-p1-demanda",
-  "model_version": "1"
-}
-```
-
-Por ejemplo, cambiar `target_hour` a 24 produce HTTP 422. En esta ejecución, `/health` confirmó `model_loaded: true` y el endpoint `/predict` devolvió la predicción anterior desde el contenedor.
-
-### Estrategia de despliegue
-
-Se eligió inferencia en tiempo real: cada solicitud HTTP obtiene una predicción inmediata para una estación. FastAPI carga el modelo champion al arrancar y lo conserva en memoria, evitando una consulta al Registry por cada petición. `/predict/batch` permite procesar un grupo de hasta 1000 estaciones en una sola llamada, aunque el servicio no realiza trabajos por lotes fuera de línea. Es una implementación académica local, no un servicio de producción.
+Se eligió inferencia en tiempo real: cada solicitud HTTP obtiene una predicción inmediata y FastAPI reutiliza en memoria el modelo cargado al iniciar. `/predict/batch` permite enviar hasta 1000 estaciones en una llamada, pero no representa procesamiento por lotes fuera de línea. Esta configuración es una implementación académica local, no un servicio de producción.
