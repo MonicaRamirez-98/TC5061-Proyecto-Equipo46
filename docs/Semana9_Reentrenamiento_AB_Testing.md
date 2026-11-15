@@ -1,4 +1,6 @@
-# Semana 9 — Reentrenamiento, A/B testing y Continuous Training (Mónica)
+# Semana 9 - Reentrenamiento, A/B testing y Continuous Training (Mónica)
+
+> **Nota.** Este análisis se realizó de forma independiente, antes de integrar el análisis de octubre de 2026 ([semana9_entrenamiento_abtest.md](semana9_entrenamiento_abtest.md)). Los números de versión corresponden al MLflow local de quien ejecutó este análisis: aquí, la "versión 2" es el candidato `P1-HGB-04`, y la decisión de la sección 2 aplica solo a ese registro local. La decisión final del equipo sobre la versión vigente se documenta en el reporte integrado.
 
 ## Objetivo
 
