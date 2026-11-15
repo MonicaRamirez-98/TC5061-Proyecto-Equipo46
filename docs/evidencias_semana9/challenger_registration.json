@@ -1,0 +1,21 @@
+{
+  "model_name": "mibici-equipo46-p1-demanda",
+  "champion_version": "1",
+  "challenger_version": "2",
+  "challenger_alias": null,
+  "source_run_id": "6792e50ce3f447e0910c3a0ac5119186",
+  "source_model_uri": "models:/m-48b9c4cf177c47d4a76376cc035ed5d9",
+  "registry_model_uri": "models:/mibici-equipo46-p1-demanda/2",
+  "candidate": "P1-HGB-02-week9-october-retrained",
+  "training_rows": 3268903,
+  "training_target_start": "2026-01-01T01:00:00",
+  "training_target_end_inclusive": "2026-10-15T23:00:00",
+  "training_target_end_exclusive": "2026-10-16T00:00:00",
+  "evaluation_holdout": {
+    "start_inclusive": "2026-10-16T00:00:00",
+    "end_exclusive": "2026-11-01T00:00:00"
+  },
+  "training_data_version": "11d629c108eb",
+  "model_ready": true,
+  "champion_alias_still_points_to": "1"
+}

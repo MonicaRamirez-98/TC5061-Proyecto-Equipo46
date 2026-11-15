@@ -1265,3 +1265,72 @@ Invoke-RestMethod -Uri http://localhost:8000/predict -Method Post -Body $body -C
 La respuesta observada fue la mostrada en el punto 3 (`3.9233`, modelo `mibici-equipo46-p1-demanda`, versión `1`). Si se cambia `target_hour` a 24, la API rechaza la petición con `422`.
 
 Se eligió inferencia en tiempo real: cada solicitud HTTP obtiene una predicción inmediata y FastAPI reutiliza en memoria el modelo cargado al iniciar. `/predict/batch` permite enviar hasta 1000 estaciones en una llamada, pero no representa procesamiento por lotes fuera de línea. Esta configuración es una implementación académica local, no un servicio de producción.
+## Semana 9 — Monitoreo de drift y A/B testing
+
+Esta etapa incorpora monitoreo de datos y comparación de versiones para P1, la predicción de salidas por estación en la siguiente hora. Se utilizó el modelo `mibici-equipo46-p1-demanda`, versión 1 (`champion`), y se registró una versión challenger como versión 2.
+
+### Datos evaluados
+
+| Conjunto | Periodo | Filas | Uso |
+|---|---|---:|---|
+| Referencia | 1 de enero–11 de julio de 2026 | 2,169,178 | Datos de entrenamiento del champion. |
+| Actual | 1–31 de octubre de 2026 | 351,439 | Comparación de distribuciones y calidad con Evidently. |
+| Evaluación A/B | 16–31 de octubre de 2026 | 181,632 | Mismas observaciones para champion y challenger. |
+
+El challenger se entrenó con datos hasta el 15 de octubre inclusive. Las etiquetas del periodo de evaluación no se usaron en su entrenamiento. La preparación de los datos y los periodos están descritos en [Semana 9: preparación de datos](docs/semana9_preparacion_datos.md).
+
+### Reproducir desde un clon limpio
+
+1. Sigue [Instalación](#instalación) y prepara el histórico con `python -m mibici.dataset`, como se explica en [Obtención de los datos (ingesta)](#obtención-de-los-datos-ingesta). Este proceso descarga enero–septiembre de 2026 y genera el manifiesto de datos.
+2. Descarga `datos_abiertos_2026_10.csv` del [portal de datos abiertos de MiBici](https://mibici.net/es/datos-abiertos/) y colócalo en `data/raw/datos_abiertos_2026_10.csv`. El CSV de octubre y los archivos procesados son entradas locales y no se versionan en Git.
+3. Inicia el servidor local de MLflow en una terminal:
+
+```powershell
+.\.venv\Scripts\mlflow.exe server --backend-store-uri sqlite:///mlflow.db --host 127.0.0.1 --port 5000 --workers 1
+```
+
+4. En otra terminal, activa el entorno y configura la conexión con MLflow:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+$env:MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
+```
+
+La base `mlflow.db` y los artefactos `mlruns/` no se incluyen en Git. Comprueba que `mibici-equipo46-p1-demanda` tenga la versión 1 con alias `champion` y que sus artefactos sean accesibles desde el servidor. En un clon limpio, si el modelo no está registrado, sigue la secuencia de ingesta, búsqueda P1, registro y verificación de la [sección de Semana 8](#1-recuperar-el-modelo-desde-mlflow-model-registry) antes de continuar; utiliza la misma URI de tracking y el mismo directorio de artefactos durante el entrenamiento y la evaluación.
+
+5. Instala las dependencias de monitoreo:
+
+```powershell
+python -m pip install -r requirements-week9.txt
+```
+
+6. Ejecuta los procesos en este orden:
+
+```powershell
+python scripts/prepare_week9_datasets.py
+python scripts/generate_week9_drift_report.py
+python scripts/train_week9_challenger.py
+python scripts/evaluate_week9_ab.py
+```
+
+Los scripts preparan los conjuntos en `data/monitoring/` y generan resultados en `reports/semana9/`. Las copias de resultados y evidencias de esta entrega están en [`docs/evidencias_semana9/`](docs/evidencias_semana9/). Para comprobar la preparación, compara `reports/semana9/dataset_summary.json` con la [copia versionada](docs/evidencias_semana9/dataset_summary.json): revisa las filas y el SHA-256 del CSV de octubre, y contrástalos con la tabla anterior y con `data/manifest/data_manifest.json`. Diferencias en los archivos de entrada pueden cambiar las métricas.
+
+### Resultados de drift y calidad
+
+Evidently detectó drift en 4 de las 8 variables de entrada: `departures_this_hour`, `arrivals_this_hour`, `departures_mean_last_24h` y `departures_mean_last_168h`. El cambio se concentra en conteos y promedios de actividad, que aumentaron frente al conjunto de entrenamiento. No se detectó drift relevante en la estación ni en las variables de calendario. Las verificaciones reportaron cero valores faltantes y cero filas duplicadas en octubre.
+
+El drift indica un cambio en los datos, pero por sí solo no demuestra que el modelo haya perdido desempeño. El reporte interactivo está disponible en [Evidently](docs/evidencias_semana9/evidently_drift_october_2026.html), junto con sus resultados JSON.
+
+### A/B testing y recomendación
+
+Ambos modelos se evaluaron sobre las mismas 181,632 filas de octubre:
+
+| Métrica | Champion v1 | Challenger v2 |
+|---|---:|---:|
+| MAE (menor es mejor) | 1.0257 | **1.0179** |
+| RMSE (menor es mejor) | 1.7848 | **1.7527** |
+| R² (mayor es mejor) | 0.7071 | **0.7175** |
+
+La versión 2 obtuvo un MAE 0.76% menor y también mejoró RMSE y R². Se recomienda como candidata a versión vigente. El alias `champion` permanece en la versión 1; el resultado del análisis no lo cambia automáticamente. El detalle de la evaluación está en [el resumen del A/B testing](docs/evidencias_semana9/ab_test_october_second_half.md) y en [la documentación del reentrenamiento](docs/semana9_entrenamiento_abtest.md).
+
+Para Continuous Training se propone una estrategia supervisada, condicionada a evidencia de degradación. Vacaciones, días festivos, contingencias de transporte, cambios de tarifa, verano y fin de año no son variables de entrada actuales; se necesitan fechas y etiquetas verificables para evaluar su efecto. Con la evidencia de un solo periodo mensual no se fija una frecuencia automática de reentrenamiento.

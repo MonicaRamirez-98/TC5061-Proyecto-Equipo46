@@ -1,0 +1,55 @@
+{
+  "evidently_version": "0.7.23",
+  "model": {
+    "question": "P1",
+    "name": "mibici-equipo46-p1-demanda",
+    "version": "1",
+    "alias": "champion",
+    "source_run_id": "731a0bf25cdd40e5b48a886a03a08aa0",
+    "candidate": "P1-HGB-02"
+  },
+  "reference": {
+    "path": "data\\monitoring\\reference_p1_train.parquet",
+    "rows": 2169178,
+    "period": {
+      "start_inclusive": "2026-01-01T01:00:00",
+      "end_inclusive": "2026-07-11T02:00:00",
+      "meaning": "Filas exactas del conjunto de entrenamiento del champion P1."
+    }
+  },
+  "current": {
+    "path": "data\\monitoring\\current_p1_2026_10.parquet",
+    "rows": 351439,
+    "period": {
+      "start_inclusive": "2026-10-01T01:00:00",
+      "end_exclusive": "2026-11-01T00:00:00",
+      "meaning": "Octubre de 2026; inicia después del último target_time incluido en el test original del champion."
+    }
+  },
+  "drift_features": [
+    "station_id",
+    "departures_this_hour",
+    "arrivals_this_hour",
+    "departures_mean_last_24h",
+    "departures_mean_last_168h",
+    "target_hour",
+    "target_dayofweek",
+    "target_is_weekend"
+  ],
+  "quality_columns": [
+    "station_id",
+    "departures_this_hour",
+    "arrivals_this_hour",
+    "departures_mean_last_24h",
+    "departures_mean_last_168h",
+    "target_hour",
+    "target_dayofweek",
+    "target_is_weekend",
+    "target_departures_next_hour",
+    "target_time"
+  ],
+  "artifacts": [
+    "reports\\semana9\\evidently_drift_october_2026.html",
+    "reports\\semana9\\evidently_drift_october_2026.json"
+  ]
+}
