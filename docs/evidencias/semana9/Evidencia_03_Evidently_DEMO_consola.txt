@@ -1,0 +1,27 @@
+TC5061 — Semana 9, Equipo 46
+Evidencia de instalación y funcionamiento de Evidently (SOLO DEMOSTRACIÓN SINTÉTICA)
+
+Comando ejecutado:
+python -m mibici.monitoring.drift --demo --sample-size 1000
+
+Salida declarada por el usuario (2026-11-15):
+[ADVERTENCIA] DEMOSTRACIÓN SINTÉTICA. NO usar como evidencia real.
+[EVIDENTLY] Calculando data drift...
+[EVIDENTLY] Calculando calidad de datos...
+[OK] Reportes generados en: reports/semana9_evidently/demo/
+  - evidently_data_drift.html
+  - evidently_calidad_datos.html
+  - resumen_evidently.md
+  - periodos_dataset.json
+  - calidad_variables.csv
+  - drift_por_variable.csv
+    departures_this_hour: drift=SI score=1.8144
+    arrivals_this_hour: drift=SI score=1.7301
+    departures_mean_last_24h: drift=SI score=3.3689
+    departures_mean_last_168h: drift=SI score=4.3817
+    target_hour: drift=NO score=0.0870
+    target_dayofweek: drift=NO score=0.0680
+    target_is_weekend: drift=NO score=0.0008
+
+En el HTML adjunto en la imagen: 4 de 7 columnas con drift (57.143%).
+NOTA: Son datos DEMO sintéticos, NO resultados reales de MiBici ni evidencia de drift en producción. La variable station_id no aparece en ese resumen de siete y conviene verificar si aparece en el reporte con datos reales.

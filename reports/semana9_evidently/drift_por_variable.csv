@@ -1,0 +1,8 @@
+﻿variable,metodo,score,umbral,drift_detectado
+departures_this_hour,wasserstein,0.145632,0.1,True
+arrivals_this_hour,wasserstein,0.151835,0.1,True
+departures_mean_last_24h,wasserstein,0.259242,0.1,True
+departures_mean_last_168h,wasserstein,0.251141,0.1,True
+target_hour,jensenshannon,0.030943,0.1,False
+target_dayofweek,jensenshannon,0.032862,0.1,False
+target_is_weekend,jensenshannon,0.006712,0.1,False
