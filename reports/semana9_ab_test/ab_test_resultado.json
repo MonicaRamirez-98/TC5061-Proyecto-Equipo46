@@ -1,0 +1,36 @@
+{
+  "periodo_actual": {
+    "particion": "test (15 % final, división cronológica 70/15/15 por target_time)",
+    "inicio": "2026-08-21T02:00:00",
+    "fin": "2026-10-01T00:00:00",
+    "filas": 462993,
+    "estaciones": 471,
+    "data_version": "129a4a57efc7"
+  },
+  "metricas": [
+    {
+      "rol": "champion",
+      "alias": "champion",
+      "version": "1",
+      "candidato": "P1-HGB-02",
+      "mae": 0.8542780456894645,
+      "rmse": 1.5067933337950647,
+      "r2": 0.6789408995750218
+    },
+    {
+      "rol": "challenger",
+      "alias": "challenger",
+      "version": "2",
+      "candidato": "P1-HGB-04",
+      "mae": 0.8399924218642602,
+      "rmse": 1.478715049282223,
+      "r2": 0.690794941789492
+    }
+  ],
+  "decision": {
+    "regla": "El challenger reemplaza al champion solo si reduce el MAE al menos 1% y no empeora RMSE ni R².",
+    "mejora_relativa_mae": 0.016722452247587418,
+    "version_vigente_recomendada": "2",
+    "ganador": "challenger"
+  }
+}
