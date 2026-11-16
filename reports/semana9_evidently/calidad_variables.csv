@@ -1,0 +1,15 @@
+﻿variable,periodo,registros,nulos,porcentaje_nulos,unicos,promedio,mediana,porcentaje_ceros
+departures_this_hour,referencia,10000,0,0.0,30,0.9962,0.0,64.24
+departures_this_hour,actual,10000,0,0.0,28,1.3053,0.0,55.55
+arrivals_this_hour,referencia,10000,0,0.0,27,0.9835,0.0,64.57
+arrivals_this_hour,actual,10000,0,0.0,32,1.3077,0.0,55.85
+departures_mean_last_24h,referencia,10000,0,0.0,227,1.0114,0.5833,21.01
+departures_mean_last_24h,actual,10000,0,0.0,246,1.3448,0.875,1.36
+departures_mean_last_168h,referencia,10000,0,0.0,1055,0.9997,0.6131,20.55
+departures_mean_last_168h,actual,10000,0,0.0,934,1.3039,0.869,0.87
+target_hour,referencia,10000,0,0.0,24,11.3684,11.0,4.13
+target_hour,actual,10000,0,0.0,24,11.4607,12.0,4.45
+target_dayofweek,referencia,10000,0,0.0,7,3.0501,3.0,13.48
+target_dayofweek,actual,10000,0,0.0,7,2.9652,3.0,15.08
+target_is_weekend,referencia,10000,0,0.0,2,0.2927,0.0,70.73
+target_is_weekend,actual,10000,0,0.0,2,0.2841,0.0,71.59

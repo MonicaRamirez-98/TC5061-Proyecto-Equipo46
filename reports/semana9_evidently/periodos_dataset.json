@@ -1,0 +1,29 @@
+{
+  "criterio": "split_cronologico_70_15_15_por_target_time_P1",
+  "referencia": {
+    "particion": "train (70 % inicial)",
+    "filas_completas": 2160006,
+    "inicio": "2026-01-01 01:00:00",
+    "fin": "2026-07-11 02:00:00",
+    "estaciones": 471,
+    "filas_muestra": 10000
+  },
+  "actual": {
+    "particion": "test (15 % final)",
+    "filas_completas": 462993,
+    "inicio": "2026-08-21 02:00:00",
+    "fin": "2026-10-01 00:00:00",
+    "estaciones": 471,
+    "filas_muestra": 10000
+  },
+  "validacion": {
+    "particion": "validation (15 % intermedio), no se usa en este reporte",
+    "inicio": "2026-07-11 03:00:00",
+    "fin_exclusivo": "2026-08-21 02:00:00"
+  },
+  "data_version": "d038fe16493d",
+  "mes_inicio": "2026-01",
+  "mes_fin": "2026-09",
+  "semilla_muestreo": 42,
+  "tipo_ejecucion": "datos_reales_del_repositorio"
+}

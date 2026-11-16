@@ -1,0 +1,98 @@
+{
+  "metrics": [
+    {
+      "id": "c467f57794fe7b261a2512602a8362e7",
+      "metric_name": "DriftedColumnsCount(drift_share=0.5,cat_method=jensenshannon,num_method=wasserstein,cat_threshold=0.1,num_threshold=0.1)",
+      "config": {
+        "type": "evidently:metric_v2:DriftedColumnsCount",
+        "drift_share": 0.5,
+        "cat_method": "jensenshannon",
+        "num_method": "wasserstein",
+        "cat_threshold": 0.1,
+        "num_threshold": 0.1
+      },
+      "value": {
+        "count": 4.0,
+        "share": 0.5714285714285714
+      }
+    },
+    {
+      "id": "4246e80dd2c299baf831db4056f08497",
+      "metric_name": "ValueDrift(column=departures_this_hour,method=wasserstein,threshold=0.1)",
+      "config": {
+        "type": "evidently:metric_v2:ValueDrift",
+        "column": "departures_this_hour",
+        "method": "wasserstein",
+        "threshold": 0.1
+      },
+      "value": 0.14563242904193024
+    },
+    {
+      "id": "ce181d47f1ffc3e0fd272fbc44bfd962",
+      "metric_name": "ValueDrift(column=arrivals_this_hour,method=wasserstein,threshold=0.1)",
+      "config": {
+        "type": "evidently:metric_v2:ValueDrift",
+        "column": "arrivals_this_hour",
+        "method": "wasserstein",
+        "threshold": 0.1
+      },
+      "value": 0.1518352752016104
+    },
+    {
+      "id": "5f547194f2976d0f25ff9b732accf132",
+      "metric_name": "ValueDrift(column=departures_mean_last_24h,method=wasserstein,threshold=0.1)",
+      "config": {
+        "type": "evidently:metric_v2:ValueDrift",
+        "column": "departures_mean_last_24h",
+        "method": "wasserstein",
+        "threshold": 0.1
+      },
+      "value": 0.2592419234200832
+    },
+    {
+      "id": "b845e4094e939e27e8148031e5dee0e4",
+      "metric_name": "ValueDrift(column=departures_mean_last_168h,method=wasserstein,threshold=0.1)",
+      "config": {
+        "type": "evidently:metric_v2:ValueDrift",
+        "column": "departures_mean_last_168h",
+        "method": "wasserstein",
+        "threshold": 0.1
+      },
+      "value": 0.25114129116815287
+    },
+    {
+      "id": "f340afdf3049d0cfbf3ebcb1df066b75",
+      "metric_name": "ValueDrift(column=target_hour,method=jensenshannon,threshold=0.1)",
+      "config": {
+        "type": "evidently:metric_v2:ValueDrift",
+        "column": "target_hour",
+        "method": "jensenshannon",
+        "threshold": 0.1
+      },
+      "value": 0.03094296627434147
+    },
+    {
+      "id": "fb65dd094948f8875dbf1b7afacf9051",
+      "metric_name": "ValueDrift(column=target_dayofweek,method=jensenshannon,threshold=0.1)",
+      "config": {
+        "type": "evidently:metric_v2:ValueDrift",
+        "column": "target_dayofweek",
+        "method": "jensenshannon",
+        "threshold": 0.1
+      },
+      "value": 0.0328617691684154
+    },
+    {
+      "id": "a0d54bf163346da2bd14ee6ae2d94919",
+      "metric_name": "ValueDrift(column=target_is_weekend,method=jensenshannon,threshold=0.1)",
+      "config": {
+        "type": "evidently:metric_v2:ValueDrift",
+        "column": "target_is_weekend",
+        "method": "jensenshannon",
+        "threshold": 0.1
+      },
+      "value": 0.006711876653288708
+    }
+  ],
+  "tests": []
+}

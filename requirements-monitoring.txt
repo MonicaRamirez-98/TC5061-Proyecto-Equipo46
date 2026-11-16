@@ -1,0 +1,2 @@
+# Instalar después de requirements.txt del repositorio. API 0.7 documentada.
+evidently==0.7.23
