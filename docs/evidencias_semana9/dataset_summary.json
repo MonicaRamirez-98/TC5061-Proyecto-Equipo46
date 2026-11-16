@@ -1,0 +1,63 @@
+{
+  "model": {
+    "question": "P1",
+    "name": "mibici-equipo46-p1-demanda",
+    "version": "1",
+    "alias": "champion",
+    "source_run_id": "731a0bf25cdd40e5b48a886a03a08aa0",
+    "candidate": "P1-HGB-02"
+  },
+  "historical_data_version": "d038fe16493d",
+  "source_manifest": "data\\manifest\\data_manifest.json",
+  "supplemental_current_data": {
+    "month": "2026-10",
+    "file": "data\\raw\\datos_abiertos_2026_10.csv",
+    "sha256": "0cdfb05299e6db658ac9cc7723494a9704b0749e3671c29c8566826ea889b900",
+    "encoding": "utf-8-sig",
+    "raw_rows": 635532,
+    "normalized_rows": 635532,
+    "date_format": "%Y-%m-%d %H:%M:%S",
+    "dropped": {
+      "fecha_invalida": 0,
+      "sin_estacion": 0,
+      "fin_antes_de_inicio": 0,
+      "fuera_del_mes": 0,
+      "duplicado": 0
+    }
+  },
+  "reference": {
+    "period_start_inclusive": "2026-01-01T01:00:00",
+    "period_end_inclusive": "2026-07-11T02:00:00",
+    "rows": 2169178,
+    "features": [
+      "station_id",
+      "departures_this_hour",
+      "arrivals_this_hour",
+      "departures_mean_last_24h",
+      "departures_mean_last_168h",
+      "target_hour",
+      "target_dayofweek",
+      "target_is_weekend"
+    ],
+    "target": "target_departures_next_hour",
+    "output": "data\\monitoring\\reference_p1_train.parquet"
+  },
+  "current": {
+    "period_start_inclusive": "2026-10-01T01:00:00",
+    "period_end_exclusive": "2026-11-01T00:00:00",
+    "rows": 351439,
+    "features": [
+      "station_id",
+      "departures_this_hour",
+      "arrivals_this_hour",
+      "departures_mean_last_24h",
+      "departures_mean_last_168h",
+      "target_hour",
+      "target_dayofweek",
+      "target_is_weekend"
+    ],
+    "target": "target_departures_next_hour",
+    "output": "data\\monitoring\\current_p1_2026_10.parquet"
+  },
+  "note": "El target se conserva como etiqueta para evaluación retrospectiva; no es una característica de entrada del modelo."
+}

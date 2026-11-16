@@ -1,0 +1,17 @@
+{
+  "model_name": "mibici-equipo46-p1-demanda",
+  "champion_version": "1",
+  "candidate": "P1-HGB-02-week9-october-retrained",
+  "training_target_time_start_inclusive": "2026-01-01T01:00:00",
+  "training_target_time_end_exclusive": "2026-10-16T00:00:00",
+  "evaluation_target_time_start_inclusive": "2026-10-16T00:00:00",
+  "evaluation_target_time_end_exclusive": "2026-11-01T00:00:00",
+  "primary_metric": "mae",
+  "hyperparameters": {
+    "max_iter": 100,
+    "learning_rate": 0.08,
+    "max_leaf_nodes": 31,
+    "random_state": 42,
+    "early_stopping": false
+  }
+}

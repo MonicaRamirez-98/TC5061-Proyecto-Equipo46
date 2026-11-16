@@ -1,0 +1,59 @@
+{
+  "model_name": "mibici-equipo46-p1-demanda",
+  "evaluation": {
+    "period_start_inclusive": "2026-10-16T00:00:00",
+    "period_end_exclusive": "2026-11-01T00:00:00",
+    "last_target_time": "2026-10-31T23:00:00",
+    "rows": 181632,
+    "same_rows_for_both_models": true,
+    "features": [
+      "station_id",
+      "departures_this_hour",
+      "arrivals_this_hour",
+      "departures_mean_last_24h",
+      "departures_mean_last_168h",
+      "target_hour",
+      "target_dayofweek",
+      "target_is_weekend"
+    ],
+    "target": "target_departures_next_hour"
+  },
+  "models": {
+    "version_1": {
+      "role": "champion",
+      "model_uri": "models:/mibici-equipo46-p1-demanda/1",
+      "metrics": {
+        "mae": 1.025691104649091,
+        "rmse": 1.7848169655341302,
+        "r2": 0.7070905654536643,
+        "mean_prediction_bias": -0.047733259132750804,
+        "underprediction_rate": 0.3226358791402396
+      }
+    },
+    "version_2": {
+      "role": "challenger",
+      "model_uri": "models:/mibici-equipo46-p1-demanda/2",
+      "metrics": {
+        "mae": 1.0179016258484976,
+        "rmse": 1.752675193222589,
+        "r2": 0.7175452587249984,
+        "mean_prediction_bias": -0.03224473262607566,
+        "underprediction_rate": 0.32139711064129667
+      }
+    }
+  },
+  "delta_challenger_minus_champion": {
+    "mae": -0.007789478800593441,
+    "rmse": -0.03214177231154114,
+    "r2": 0.010454693271334081,
+    "mean_prediction_bias": 0.015488526506675142,
+    "underprediction_rate": -0.0012387684989429437
+  },
+  "recommendation": {
+    "version": "version_2",
+    "primary_metric": "mae",
+    "rationale": "El challenger obtuvo menor MAE en el holdout temporal común; MAE es la métrica primaria usada para seleccionar el champion original.",
+    "alias_changed": false,
+    "current_champion_alias": "1"
+  }
+}
