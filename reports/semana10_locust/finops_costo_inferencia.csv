@@ -1,0 +1,10 @@
+usuarios,instancia,plan,precio_usd_hora,inferencias_hora,usd_por_millon_inferencias
+10,"AWS c7i.xlarge (4 vCPU, 8 GiB)",On-Demand,0.179,75924,2.3576
+10,"AWS c7i.xlarge (4 vCPU, 8 GiB)",Reservada 1 año,0.118,75924,1.5542
+10,"AWS c7i.xlarge (4 vCPU, 8 GiB)",Spot,0.064,75924,0.8429
+50,"AWS c7i.xlarge (4 vCPU, 8 GiB)",On-Demand,0.179,383724,0.4665
+50,"AWS c7i.xlarge (4 vCPU, 8 GiB)",Reservada 1 año,0.118,383724,0.3075
+50,"AWS c7i.xlarge (4 vCPU, 8 GiB)",Spot,0.064,383724,0.1668
+100,"AWS c7i.xlarge (4 vCPU, 8 GiB)",On-Demand,0.179,571932,0.313
+100,"AWS c7i.xlarge (4 vCPU, 8 GiB)",Reservada 1 año,0.118,571932,0.2063
+100,"AWS c7i.xlarge (4 vCPU, 8 GiB)",Spot,0.064,571932,0.1119

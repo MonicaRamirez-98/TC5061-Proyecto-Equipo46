@@ -1,0 +1,3 @@
+# Pruebas de carga de la API (Semana 10). Instalar en el entorno con Python 3.11:
+#   pip install -r requirements-loadtest.txt
+locust==2.47.0

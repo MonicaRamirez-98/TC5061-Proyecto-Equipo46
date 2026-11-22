@@ -1,0 +1,4 @@
+usuarios,peticiones,fallas,tasa_error_pct,peticiones_s,inferencias_s,latencia_p50_ms,latencia_p95_ms,latencia_p99_ms,latencia_max_ms,api_cpu_prom_pct,api_cpu_max_pct,api_mem_max_mib,mlflow_cpu_prom_pct,lecturas_docker
+10,1359,0,0.0,7.62,21.09,11,55,77,2099,51.5,90.7,195.0,1.74,48
+50,6553,0,0.0,36.71,106.59,57,130,230,2183,212.9,267.0,190.8,3.99,47
+100,9823,0,0.0,54.96,158.87,370,1600,2700,3059,413.1,499.6,213.0,5.63,45
