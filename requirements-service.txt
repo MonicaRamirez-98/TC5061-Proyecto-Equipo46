@@ -1,0 +1,1 @@
+﻿# Las dependencias de la API (FastAPI, Uvicorn y Pydantic) ya estan declaradas en requirements.txt. Se utilizan las versiones oficiales del Equipo 46.
