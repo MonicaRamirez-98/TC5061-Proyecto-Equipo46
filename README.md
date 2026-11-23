@@ -1230,6 +1230,7 @@ $modelsTarget = "/C:/IVAN/MNA/TC5061/semana-07/mlruns/2/models"
 docker run --detach --rm --name mibici-equipo46-api `
   --publish 8000:8000 `
   --add-host host.containers.internal:host-gateway `
+  --env MLFLOW_TRACKING_URI=http://host.containers.internal:5000 `
   --mount "type=bind,source=$modelsHost,target=$modelsTarget" `
   mibici-equipo46-api:semana8
 ```
@@ -1361,7 +1362,7 @@ se usa exclusivamente en el smoke test del workflow de GitHub Actions.
 
 1. Instalar y abrir Docker Desktop; disponer de Python 3.11 y dependencias.
 2. Antes de levantar Compose, iniciar el MLflow ORIGINAL (Registro Semana 8)
-   y comprobar que el alias `champion` existe y sus artefactos se descargan.
+  y comprobar que el alias `champion` apunta a la versión 1 (P1-HGB-02) y sus artefactos se descargan.
 3. Exportar el modelo real mientras esté activo ese servidor original:
 
 ```powershell
@@ -1394,7 +1395,7 @@ servicios y comprueba `/health`, `/model-info` y `/predict`. Publica como
 artefactos los resultados de Pytest (JUnit) y los logs de los contenedores.
 Se utiliza un modelo sintético SOLO en el smoke test de CI para evitar
 publicar un modelo real en GitHub. La evidencia del rendimiento real
-corresponde al análisis de Locust realizado por el equipo por separado.
+corresponde al análisis de Locust que se encuentra en `reports/semana10_locust/`.
 
 El job opcional de publicación GHCR se habilita estableciendo en GitHub
 `Settings > Secrets and variables > Actions > Variables` la variable
